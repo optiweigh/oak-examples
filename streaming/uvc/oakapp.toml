@@ -3,7 +3,7 @@ identifier = "com.example.uvc_app"
 app_version = "0.1.0"
 
 # Command to run when the container starts
-entrypoint = ["bash", "-c", "/app/uvc_example"]
+entrypoint = ["bash", "-c", "/app/uvc-start.sh start"]
 
 # Here is the place where you can install all the dependencies that are needed at run-time
 prepare_container = [

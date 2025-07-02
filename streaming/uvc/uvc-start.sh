@@ -24,13 +24,6 @@ echo "  serial  : $SERIAL"
 remove_all_gadgets() {
     echo Removing all gadget configs
 
-    systemctl disable usb
-    systemctl disable adbd
-    mount -o remount,rw /
-    mv /sbin/launch_adbd /sbin/launch_adbd.bak 2>/dev/null
-    mv /sbin/start_usb /sbin/start_usb.bak 2>/dev/null
-    mount -o remount,ro /
-
     if [ ! -d /sys/kernel/config/usb_gadget/g1 ]; then
         echo "No gadget found, nothing to remove"
         return 0
@@ -38,7 +31,15 @@ remove_all_gadgets() {
 
     pushd /sys/kernel/config/usb_gadget/g1
 
-    echo "" > UDC
+	echo "Unbinding USB Device Controller..."
+	while true; do
+    	echo "" > UDC 2>/dev/null
+		if [ $? -eq 0 ]; then
+			echo "Successfully unbound UDC"
+			break
+		fi
+		sleep 1
+	done
 
     rm configs/c.1/* 2>/dev/null
     rmdir configs/c.1/strings/0x409 2>/dev/null
@@ -144,7 +145,8 @@ create_uvc() {
 
 case "$1" in
     start)
-    echo "    ==== Starting the USB gadget ===="
+    echo "    ==== Configuring USB gadget ===="
+	sleep 5
 
     if [ ! -d $CONFIGFS ]; then
         echo "Configfs not mounted, please mount it first"
@@ -158,7 +160,7 @@ case "$1" in
 	echo "Creating gadget directory g1"
 	mkdir -p $GADGET/g1
 
-	cd $GADGET/g1
+	pushd $GADGET/g1
 	if [ $? -ne 0 ]; then
 	    echo "Error creating usb gadget in configfs"
 	    exit 1;
@@ -186,9 +188,22 @@ case "$1" in
 	create_uvc configs/c.1 uvc.0
 	echo "OK"
 
-	echo "Binding USB Device Controller"
-	echo $UDC > UDC
-	echo "OK"
+	echo "Binding USB Device Controller..."
+	while true; do
+    	echo $UDC > UDC 2>/dev/null
+		if [ $? -eq 0 ]; then
+			echo "Successfully bound UDC controller $UDC"
+			break
+		fi
+		sleep 1
+	done
+
+	popd
+
+	echo "    ==== Configuration done ===="
+	
+	echo "    ==== Starting UVC APP ===="
+	./uvc_example
 
 	;;
 
