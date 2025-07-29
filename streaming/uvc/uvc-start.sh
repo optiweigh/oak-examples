@@ -32,10 +32,17 @@ remove_all_gadgets() {
     pushd /sys/kernel/config/usb_gadget/g1
 
 	echo "Unbinding USB Device Controller..."
+	retries=0
+	max_retries=5
 	while true; do
-    	echo "" > UDC 2>/dev/null
+		echo "" > UDC 2>/dev/null
 		if [ $? -eq 0 ]; then
 			echo "Successfully unbound UDC"
+			break
+		fi
+		retries=$((retries + 1))
+		if [ $retries -ge $max_retries ]; then
+			echo "Failed to unbind UDC after $max_retries attempts"
 			break
 		fi
 		sleep 1
@@ -48,6 +55,8 @@ remove_all_gadgets() {
     rm functions/uvc.0/streaming/header/h/* 2>/dev/null
     rm functions/uvc.0/streaming/header/h1/* 2>/dev/null
     rm functions/uvc.0/streaming/header/h/m 2>/dev/null
+	rmdir functions/uvc.0/streaming/h264/h/* 2>/dev/null
+	rmdir functions/uvc.0/streaming/h264/h 2>/dev/null
     rmdir functions/uvc.0/streaming/mjpeg/m/* 2>/dev/null
     rmdir functions/uvc.0/streaming/mjpeg/m1/* 2>/dev/null
     rmdir functions/uvc.0/streaming/mjpeg/m 2>/dev/null
