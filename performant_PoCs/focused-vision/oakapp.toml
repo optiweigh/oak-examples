@@ -1,4 +1,4 @@
-identifier = "com.example.face-detection.gaze-estimation"
+identifier = "com.example.performant-PoCs.focused-vision"
 app_version = "1.0.0"
 
 prepare_container = [
