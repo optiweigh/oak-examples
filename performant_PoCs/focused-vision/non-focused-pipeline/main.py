@@ -77,7 +77,7 @@ with dai.Pipeline(device) as pipeline:
     det_nn.input.setBlocking(True)
 
     # annotation
-    non_focused_annotation = pipeline.create(AnnotationNode).build_non_focused(det_nn.out)
+    non_focused_annotation = pipeline.create(AnnotationNode).build(det_nn.out)
 
     # visualization
     visualizer.addTopic("NN Input", resize_node.out, "images")
