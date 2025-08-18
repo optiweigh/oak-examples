@@ -221,8 +221,29 @@ case "$1" in
     echo "    ==== Configuration done ===="
     
     echo "    ==== Starting UVC APP ===="
-    /app/uvc_example
-    
+    retries=0
+    max_retries=5
+    backoff=5
+    child_pid=0
+
+    while [ $retries -lt $max_retries ]; do
+      /app/uvc_example &
+      child_pid=$!
+      wait "$child_pid"
+      status=$?
+
+      if [ $status -eq 0 ]; then
+        echo "uvc_example exited normally."
+        exit 0
+      fi
+
+      retries=$((retries + 1))
+      printf '[%(%Y-%m-%d %H:%M:%S)T] uvc_example exited with status %d. Restarting (%d/%d) in %ds...\n' -1 "$status" "$retries" "$max_retries" "$backoff"
+      sleep "$backoff"
+    done
+
+    echo "uvc_example failed $max_retries times. Not restarting anymore."
+    exit 1
     ;;
 
     stop)
