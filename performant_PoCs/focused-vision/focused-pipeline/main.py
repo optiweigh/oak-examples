@@ -3,14 +3,15 @@ from pathlib import Path
 import depthai as dai
 from depthai_nodes.node import GatherData, ParsingNeuralNetwork
 from utils.annotation_node import AnnotationNode
+from utils.crop_gaze_annotation_node import CropGazeAnnotationNode
 from utils.arguments import initialize_argparser
 from utils.grid_layout_node import GridLayoutNode
 from utils.process import ProcessDetections
 
 _, args = initialize_argparser()
 
-INPUT_WIDTH, INPUT_HEIGHT = 2560, 1440
-OUTPUT_WIDTH, OUTPUT_HEIGHT = 640, 360
+INPUT_WIDTH, INPUT_HEIGHT = 3840, 2160
+OUTPUT_WIDTH, OUTPUT_HEIGHT = 2560, 1440
 CROP_OUT_W, CROP_OUT_H = 2560, 1440
 CROP_NN_W, CROP_NN_H = 320, 240
 DET_MODEL = "luxonis/yunet:320x240"
@@ -25,7 +26,7 @@ frame_type = dai.ImgFrame.Type.BGR888i if platform == "RVC4" else dai.ImgFrame.T
 print(f"[MAIN] Frame type selected: {frame_type.name}")
 
 if not args.fps_limit:
-    args.fps_limit = 8 if platform == "RVC2" else 18
+    args.fps_limit = 8 if platform == "RVC2" else 30
 print(f"[MAIN] FPS limit: {args.fps_limit}")
 
 with dai.Pipeline(device) as pipeline:
@@ -113,14 +114,18 @@ with dai.Pipeline(device) as pipeline:
     # grid from crop stream
     grid_layout = pipeline.create(GridLayoutNode).build(
         crops_input=gather_crops.out,
-        num_configs_input=proc.num_configs_output,   # count seq = gid
         target_size=(CROP_OUT_W, CROP_OUT_H),
     )
     grid_layout.frame_type = frame_type
 
+    crop_gaze_annot = pipeline.create(CropGazeAnnotationNode).build(
+        gather_crops.out,  # <-- required first arg
+        mosaic_size=(CROP_OUT_W, CROP_OUT_H),  # matches your Face Mosaic size
+        crop_size=(CROP_OUT_W, CROP_OUT_H),  # size used for each crop before tiling
+    )
+
     # annotations
     eye_full = pipeline.create(AnnotationNode).build_focused(gather.out, padding=PADDING)
-    eye_crop = pipeline.create(AnnotationNode).build_crop(stage2_nn.out)
 
     # full-frame viz
     full_viz = pipeline.create(dai.node.ImageManip)
@@ -132,9 +137,10 @@ with dai.Pipeline(device) as pipeline:
     # visualizer
     visualizer.addTopic("Video", full_viz.out, "images")
     # visualizer.addTopic("Face Crops (debug)", face_crop_disp.out, "images")
-    # visualizer.addTopic("Face Mosaic", grid_layout.output, "images")
+    visualizer.addTopic("Face Mosaic", grid_layout.output, "images")
     visualizer.addTopic("Eyes (Full)", eye_full.out, "annotations")
-    visualizer.addTopic("Eyes (Crop)", eye_crop.out, "annotations")
+    visualizer.addTopic("Eyes (Crops)", crop_gaze_annot.out, "annotations")
+
 
     print("[MAIN] Pipeline created.")
     pipeline.start()

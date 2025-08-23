@@ -1,11 +1,3 @@
-# DepthAI Script node:
-#  - Read one source frame + COUNT Buffer (to know gid and num_configs)
-#  - For each crop i:
-#       * get one config (its seq must be gid + i)
-#       * set frame.seq = gid + i
-#       * send frame, then send config
-#  - This produces N (image,config) pairs -> N outputs from ImageManip.
-
 try:
     GROUP_STRIDE = 1000
 
