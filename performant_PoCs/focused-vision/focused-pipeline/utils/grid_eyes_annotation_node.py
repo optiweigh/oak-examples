@@ -19,11 +19,9 @@ class GridEyesAnnotationNode(dai.node.HostNode):
     def __init__(self):
         super().__init__()
 
-        def __init__(self):
-            super().__init__()
-            self.mosaic_w = self.mosaic_h = None
-            self.crop_w = self.crop_h = None
-            self.EYE_SCALE = 0.35
+        self.mosaic_w = self.mosaic_h = None
+        self.crop_w = self.crop_h = None
+        self.EYE_SCALE = 0.35
 
     def build(
             self,
