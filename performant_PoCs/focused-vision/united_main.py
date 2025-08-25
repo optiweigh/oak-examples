@@ -110,7 +110,7 @@ with dai.Pipeline(device) as pipeline:
     grid_layout.frame_type = frame_type
 
     # annotations
-    eye_full = pipeline.create(AnnotationNode).build(gather.out, padding=PADDING)
+    eye_full = pipeline.create(AnnotationNode).build(gather.out)
 
     grid_eyes = pipeline.create(GridEyesAnnotationNode).build(
         gathered_pair_out=gather.out,
