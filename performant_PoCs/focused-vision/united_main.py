@@ -140,7 +140,7 @@ with dai.Pipeline(device) as pipeline:
     visualizer.addTopic("Face Mosaic", grid_layout.output, "images")
     visualizer.addTopic("Eyes (Full)", eye_full.out, "annotations")
     visualizer.addTopic("Eyes (Crops)", grid_eyes.out, "annotations")
-    visualizer.addTopic("NN Input", resize1.out, "images")
+    visualizer.addTopic("Not Focused Pipeline", resize1.out, "images")
     visualizer.addTopic("Eyes (Non-Focused)", non_focused.out, "annotations")
 
     pipeline.start()
