@@ -14,7 +14,7 @@ _, args = initialize_argparser()
 
 INPUT_WIDTH, INPUT_HEIGHT = 3840, 2160
 FACE_DETECTION_MODEL = "luxonis/yunet:320x240"
-EYE_DETECTION_MODEL = "luxonis-ml-team/eye-detection:eye-detection-512x512"
+EYE_DETECTION_MODEL = "luxonis/eye-detection:512x512"
 
 visualizer = dai.RemoteConnection(httpPort=8082)
 device = dai.Device(dai.DeviceInfo(args.device)) if args.device else dai.Device()
@@ -46,7 +46,7 @@ with dai.Pipeline(device) as pipeline:
 
     eye_model_desc = dai.NNModelDescription(EYE_DETECTION_MODEL)
     eye_model_desc.platform = platform
-    eye_model_archive = dai.NNArchive(dai.getModelFromZoo(eye_model_desc, apiKey=args.api_key))
+    eye_model_archive = dai.NNArchive(dai.getModelFromZoo(eye_model_desc))
 
     eye_model_input_height = eye_model_archive.getInputHeight()
     eye_model_input_width = eye_model_archive.getInputWidth()
@@ -66,33 +66,32 @@ with dai.Pipeline(device) as pipeline:
 
         out_NV12 = cam.requestOutput(size=(INPUT_WIDTH, INPUT_HEIGHT), type=dai.ImgFrame.Type.NV12, fps=args.fps_limit)
 
+    resize_non_focused = pipeline.create(dai.node.ImageManip)
+    resize_non_focused.setMaxOutputFrameSize(eye_model_input_width * eye_model_input_height * 3)
+    resize_non_focused.initialConfig.setOutputSize(
+        eye_model_input_width,
+        eye_model_input_height,
+        mode=dai.ImageManipConfig.ResizeMode.LETTERBOX,
+    )
+    resize_non_focused.initialConfig.setFrameType(frame_type)
+    input_node.link(resize_non_focused.inputImage)
+
+    non_focused_nn: ParsingNeuralNetwork = pipeline.create(ParsingNeuralNetwork).build(
+        resize_non_focused.out, eye_model_archive
+    )
+
     # stage1 resize + NN
-    resize1 = pipeline.create(dai.node.ImageManip)
-    resize1.setMaxOutputFrameSize(face_model_input_width * face_model_input_height * 3)
-    resize1.initialConfig.setOutputSize(
+    resize_stage1 = pipeline.create(dai.node.ImageManip)
+    resize_stage1.setMaxOutputFrameSize(face_model_input_width * face_model_input_height * 3)
+    resize_stage1.initialConfig.setOutputSize(
         face_model_input_width,
         face_model_input_height,
         mode=dai.ImageManipConfig.ResizeMode.STRETCH,
     )
-    resize1.initialConfig.setFrameType(frame_type)
-    input_node.link(resize1.inputImage)
+    resize_stage1.initialConfig.setFrameType(frame_type)
+    input_node.link(resize_stage1.inputImage)
 
-    stage1_nn: ParsingNeuralNetwork = pipeline.create(ParsingNeuralNetwork).build(resize1.out, face_model_archive)
-
-    resize_node = pipeline.create(dai.node.ImageManip)
-    resize_node.initialConfig.setOutputSize(
-        eye_model_input_width, eye_model_input_height
-    )
-    resize_node.setMaxOutputFrameSize(
-        eye_model_input_width * eye_model_input_height * 3
-    )
-    resize_node.initialConfig.setReusePreviousImage(False)
-    resize_node.inputImage.setBlocking(True)
-    input_node.link(resize_node.inputImage)
-
-    det_nn: ParsingNeuralNetwork = pipeline.create(ParsingNeuralNetwork).build(
-        resize_node.out, eye_model_archive
-    )
+    stage1_nn: ParsingNeuralNetwork = pipeline.create(ParsingNeuralNetwork).build(resize_stage1.out, face_model_archive)
 
     det_bridge = pipeline.create(ImgDetectionsBridge).build(
         stage1_nn.out
@@ -153,7 +152,7 @@ with dai.Pipeline(device) as pipeline:
         crop_size=(eye_model_input_width, eye_model_input_height),
     )
 
-    non_focused = pipeline.create(NonFocusedEyesAnnotationNode).build(det_nn.out)
+    non_focused = pipeline.create(NonFocusedEyesAnnotationNode).build(non_focused_nn.out)
 
     video_enc = pipeline.create(dai.node.VideoEncoder)
     video_enc.setDefaultProfilePreset(
@@ -162,8 +161,9 @@ with dai.Pipeline(device) as pipeline:
 
     mosaic_enc = pipeline.create(dai.node.VideoEncoder)
     mosaic_enc.setDefaultProfilePreset(
-        fps=args.fps_limit, profile=dai.VideoEncoderProperties.Profile.H264_MAIN
+        fps=args.fps_limit, profile=dai.VideoEncoderProperties.Profile.H264_HIGH
     )
+    mosaic_enc.setRateControlMode(dai.VideoEncoderProperties.RateControlMode.VBR)
 
     if args.media_path:
         out_NV12 = convert_to_nv12(replay.out, INPUT_WIDTH, INPUT_HEIGHT)
@@ -172,14 +172,14 @@ with dai.Pipeline(device) as pipeline:
     else:
         out_NV12.link(video_enc.input)
 
-    mosaic_NV12 = convert_to_nv12(mosaic_layout.output, INPUT_WIDTH, INPUT_HEIGHT)
+    mosaic_NV12 = convert_to_nv12(mosaic_layout.output, eye_model_input_width, eye_model_input_height)
     mosaic_NV12.out.link(mosaic_enc.input)
 
     visualizer.addTopic("Video", video_enc.out, "images")
     visualizer.addTopic("Face Mosaic", mosaic_enc.out, "images")
     visualizer.addTopic("Face stage 1", eye_full.out, "annotations")
     visualizer.addTopic("Eyes (Crops)", mosaic_eyes.out, "annotations")
-    visualizer.addTopic("NN Input", resize1.out, "images")
+    visualizer.addTopic("Non Focused Video", resize_non_focused.out, "images")
     visualizer.addTopic("Eyes (Non-Focused)", non_focused.out, "annotations")
 
     pipeline.start()

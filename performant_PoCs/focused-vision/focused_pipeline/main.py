@@ -13,7 +13,7 @@ _, args = initialize_argparser()
 
 INPUT_WIDTH, INPUT_HEIGHT = 3840, 2160
 FACE_DETECTION_MODEL = "luxonis/yunet:320x240"
-EYE_DETECTION_MODEL = "luxonis-ml-team/eye-detection:eye-detection-512x512"
+EYE_DETECTION_MODEL = "luxonis/eye-detection:512x512"
 
 visualizer = dai.RemoteConnection(httpPort=8082)
 device = dai.Device(dai.DeviceInfo(args.device)) if args.device else dai.Device()
@@ -45,7 +45,7 @@ with dai.Pipeline(device) as pipeline:
 
     eye_model_desc = dai.NNModelDescription(EYE_DETECTION_MODEL)
     eye_model_desc.platform = platform
-    eye_model_archive = dai.NNArchive(dai.getModelFromZoo(eye_model_desc, apiKey=args.api_key))
+    eye_model_archive = dai.NNArchive(dai.getModelFromZoo(eye_model_desc))
 
     eye_model_input_height = eye_model_archive.getInputHeight()
     eye_model_input_width = eye_model_archive.getInputWidth()
@@ -144,8 +144,9 @@ with dai.Pipeline(device) as pipeline:
 
     mosaic_enc = pipeline.create(dai.node.VideoEncoder)
     mosaic_enc.setDefaultProfilePreset(
-        fps=args.fps_limit, profile=dai.VideoEncoderProperties.Profile.H264_MAIN
+        fps=args.fps_limit, profile=dai.VideoEncoderProperties.Profile.H264_HIGH
     )
+    mosaic_enc.setRateControlMode(dai.VideoEncoderProperties.RateControlMode.VBR)
 
     if args.media_path:
         out_NV12 = convert_to_nv12(replay.out, INPUT_WIDTH, INPUT_HEIGHT)
@@ -154,7 +155,7 @@ with dai.Pipeline(device) as pipeline:
     else:
         out_NV12.link(video_enc.input)
 
-    mosaic_NV12 = convert_to_nv12(mosaic_layout.output, INPUT_WIDTH, INPUT_HEIGHT)
+    mosaic_NV12 = convert_to_nv12(mosaic_layout.output, eye_model_input_width, eye_model_input_height)
     mosaic_NV12.out.link(mosaic_enc.input)
 
     visualizer.addTopic("Video", video_enc.out, "images")

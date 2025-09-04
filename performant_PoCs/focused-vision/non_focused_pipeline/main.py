@@ -6,7 +6,7 @@ from depthai_nodes.node import ParsingNeuralNetwork, GatherData
 from utils.arguments import initialize_argparser
 from utils.annotation_node import AnnotationNode
 
-DET_MODEL = "luxonis-ml-team/eye-detection:eye-detection-512x512"
+EYE_DETECTION_MODEL = "luxonis/eye-detection:512x512"
 
 _, args = initialize_argparser()
 
@@ -29,9 +29,9 @@ with dai.Pipeline(device) as pipeline:
     print("Creating pipeline...")
 
     # face detection model
-    det_model_description = dai.NNModelDescription(DET_MODEL)
+    det_model_description = dai.NNModelDescription(EYE_DETECTION_MODEL)
     det_model_description.platform = platform
-    det_model_nn_archive = dai.NNArchive(dai.getModelFromZoo(det_model_description, apiKey=args.api_key))
+    det_model_nn_archive = dai.NNArchive(dai.getModelFromZoo(det_model_description))
     
     det_w = det_model_nn_archive.getInputWidth()
     det_h = det_model_nn_archive.getInputHeight()
@@ -73,7 +73,6 @@ with dai.Pipeline(device) as pipeline:
     non_focused_annotation = pipeline.create(AnnotationNode).build(det_nn.out)
 
     # visualization
-    visualizer.addTopic("NN Input", resize_node.out, "images")
     visualizer.addTopic("Eyes (Non-Focused)", non_focused_annotation.out, "annotations")
     visualizer.addTopic("Video", input_node_out, "images")
 

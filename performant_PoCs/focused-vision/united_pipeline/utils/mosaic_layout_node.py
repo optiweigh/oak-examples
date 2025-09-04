@@ -119,8 +119,8 @@ class MosaicLayoutNode(dai.node.HostNode):
         self.crops_input = self.createInput()
         self.output = self.createOutput()
 
-        self._target_w = 1920
-        self._target_h = 1080
+        self._target_w = None
+        self._target_h = None
         self._frame_type = None
 
     def build(self, crops_input: dai.Node.Output, target_size: Tuple[int, int], frame_type: dai.ImgFrame.Type) -> "MosaicLayoutNode":
