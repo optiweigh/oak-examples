@@ -165,6 +165,11 @@ with dai.Pipeline(device) as pipeline:
     )
     mosaic_enc.setRateControlMode(dai.VideoEncoderProperties.RateControlMode.VBR)
 
+    non_focused_enc = pipeline.create(dai.node.VideoEncoder)
+    non_focused_enc.setDefaultProfilePreset(
+        fps=args.fps_limit, profile=dai.VideoEncoderProperties.Profile.H264_HIGH
+    )
+
     if args.media_path:
         out_NV12 = convert_to_nv12(replay.out, INPUT_WIDTH, INPUT_HEIGHT)
         out_NV12.out.link(video_enc.input)
@@ -175,11 +180,14 @@ with dai.Pipeline(device) as pipeline:
     mosaic_NV12 = convert_to_nv12(mosaic_layout.output, eye_model_input_width, eye_model_input_height)
     mosaic_NV12.out.link(mosaic_enc.input)
 
+    resize_non_focused_NV12 = convert_to_nv12(resize_non_focused.out, eye_model_input_width, eye_model_input_height)
+    resize_non_focused_NV12.out.link(non_focused_enc.input)
+
     visualizer.addTopic("Video", video_enc.out, "images")
     visualizer.addTopic("Face Mosaic", mosaic_enc.out, "images")
     visualizer.addTopic("Face stage 1", eye_full.out, "annotations")
     visualizer.addTopic("Eyes (Crops)", mosaic_eyes.out, "annotations")
-    visualizer.addTopic("Non Focused Video", resize_non_focused.out, "images")
+    visualizer.addTopic("Non Focused Video", non_focused_enc.out, "images")
     visualizer.addTopic("Eyes (Non-Focused)", non_focused.out, "annotations")
 
     pipeline.start()
