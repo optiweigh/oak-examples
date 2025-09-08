@@ -5,7 +5,7 @@ from .mosaic_layout_node import _compute_mosaic_layout
 from depthai_nodes.message.gathered_data import GatheredData
 
 
-class MosaicEyesAnnotationNode(dai.node.HostNode):
+class MosaicStage2AnnotationNode(dai.node.HostNode):
     """
     Draw boxes from each crop onto a single mosaic-sized annotation.
 
@@ -27,7 +27,7 @@ class MosaicEyesAnnotationNode(dai.node.HostNode):
         gathered_pair_out: dai.Node.Output,
         mosaic_size: Tuple[int, int],
         crop_size: Tuple[int, int],
-    ) -> "MosaicEyesAnnotationNode":
+    ) -> "MosaicStage2AnnotationNode":
         self.mosaic_w, self.mosaic_h = map(int, mosaic_size)
         self.crop_w, self.crop_h = map(int, crop_size)
         self.link_args(gathered_pair_out)

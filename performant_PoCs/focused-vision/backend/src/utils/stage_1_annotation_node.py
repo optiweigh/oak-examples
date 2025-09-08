@@ -3,11 +3,11 @@ from depthai_nodes import ImgDetectionsExtended
 from depthai_nodes.utils import AnnotationHelper
 
 
-class FaceAnnotationNode(dai.node.HostNode):
+class Stage1AnnotationNode(dai.node.HostNode):
     def __init__(self) -> None:
         super().__init__()
 
-    def build(self, gathered_pair_out: dai.Node.Output) -> "FaceAnnotationNode":
+    def build(self, gathered_pair_out: dai.Node.Output) -> "Stage1AnnotationNode":
         self.link_args(gathered_pair_out)
         return self
 
