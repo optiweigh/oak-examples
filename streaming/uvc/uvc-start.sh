@@ -161,8 +161,7 @@ terminate() {
 }
 trap terminate INT TERM
 
-case "$1" in
-    start)
+do_uvc_configure() {
     echo "    ==== Configuring USB gadget ===="
     sleep 5
 
@@ -214,6 +213,7 @@ case "$1" in
         echo "$UDC" > UDC 2>/dev/null
         if [ $? -eq 0 ]; then
             echo "Successfully bound UDC controller $UDC"
+            sleep 1
             break
         fi
         sleep 1
@@ -222,27 +222,31 @@ case "$1" in
     popd >/dev/null
 
     echo "    ==== Configuration done ===="
-    
-    echo "    ==== Starting UVC APP ===="
-    retries=0
-    max_retries=5
-    backoff=5
-    child_pid=0
+}
 
+retries=0
+max_retries=5
+backoff=5
+child_pid=0
+
+case "$1" in
+    start)
     while [ $retries -lt $max_retries ]; do
-      /app/uvc_example &
-      child_pid=$!
-      wait "$child_pid"
-      status=$?
+        do_uvc_configure
+        echo "    ==== Starting UVC APP ===="
+        /app/uvc_example &
+        child_pid=$!
+        wait "$child_pid"
+        status=$?
 
-      if [ $status -eq 0 ]; then
-        echo "uvc_example exited normally."
-        exit 0
-      fi
+        if [ $status -eq 0 ]; then
+            echo "uvc_example exited normally."
+            exit 0
+        fi
 
-      retries=$((retries + 1))
-      printf '[%(%Y-%m-%d %H:%M:%S)T] uvc_example exited with status %d. Restarting (%d/%d) in %ds...\n' -1 "$status" "$retries" "$max_retries" "$backoff"
-      sleep "$backoff"
+        retries=$((retries + 1))
+        printf 'uvc_example exited with status %d. Restarting (%d/%d) in %ds...\n' "$status" "$retries" "$max_retries" "$backoff"
+        sleep "$backoff"
     done
 
     echo "uvc_example failed $max_retries times. Not restarting anymore."
