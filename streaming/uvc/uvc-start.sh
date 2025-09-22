@@ -138,15 +138,6 @@ create_uvc() {
     popd >/dev/null
 }
 
-terminate() {
-    if [ "$child_pid" -gt 0 ] 2>/dev/null && kill -0 "$child_pid" 2>/dev/null; then
-    kill -TERM "$child_pid"
-    wait "$child_pid" || true
-    fi
-    exit 143
-}
-trap terminate INT TERM
-
 do_uvc_configure() {
     log "=== Configuring USB gadget"
     sleep 5
@@ -209,6 +200,25 @@ uvc_unbind() {
     fi
 }
 
+do_uvc_stop() {
+    log "=== Stopping the USB gadget"
+    uvc_unbind
+    remove_uvc_gadget
+    uvc_bind
+    log "    OK"
+
+}
+
+terminate() {
+    if [ "$child_pid" -gt 0 ] 2>/dev/null && kill -0 "$child_pid" 2>/dev/null; then
+    kill -TERM "$child_pid"
+    wait "$child_pid" || true
+    fi
+    do_uvc_stop
+    exit 143
+}
+trap terminate INT TERM
+
 case "$1" in
     start)
     retries=0
@@ -226,6 +236,7 @@ case "$1" in
         child_pid=$!
         wait "$child_pid"
         status=$?
+        do_uvc_stop
 
         if [ $status -eq 0 ]; then
         log "    uvc_example exited normally."
@@ -242,11 +253,7 @@ case "$1" in
     ;;
 
     stop)
-    log "=== Stopping the USB gadget"
-    uvc_unbind
-    remove_uvc_gadget
-    uvc_bind
-    log "    OK"
+    do_uvc_stop
     ;;
     *)
     log "Usage: $0 {start|stop}"
