@@ -11,7 +11,7 @@ from utils.safe_img_detections_bridge import SafeImgDetectionsBridge
 
 _, args = initialize_argparser()
 
-INPUT_WIDTH, INPUT_HEIGHT = 3840, 2160
+INPUT_WIDTH, INPUT_HEIGHT = 1920, 1080
 STAGE_1_MODEL = "luxonis/yunet:320x240"
 STAGE_2_MODEL = "luxonis/eye-detection:512x512"
 
