@@ -211,17 +211,17 @@ uvc_unbind() {
 
 case "$1" in
     start)
-    uvc_unbind
-    do_uvc_configure
-    uvc_bind
-
-    log "=== Starting UVC APP"
     retries=0
     max_retries=5
     backoff=5
     child_pid=0
 
     while [ $retries -lt $max_retries ]; do
+        uvc_unbind
+        do_uvc_configure
+        uvc_bind
+
+        log "=== Starting UVC APP"
         /app/uvc_example &
         child_pid=$!
         wait "$child_pid"
