@@ -8,6 +8,7 @@ from utils.arguments import initialize_argparser
 from utils.mosaic_layout_node import MosaicLayoutNode
 from utils.mosaic_stage_2_annotation_node import MosaicStage2AnnotationNode
 from utils.safe_img_detections_bridge import SafeImgDetectionsBridge
+from utils.stage2_to_full_annotation_node import Stage2CropToFullRemapNode
 
 _, args = initialize_argparser()
 
@@ -69,8 +70,7 @@ with dai.Pipeline(device) as pipeline:
     resize_non_focused.setMaxOutputFrameSize(stage_2_model_input_width * stage_2_model_input_height * 3)
     resize_non_focused.initialConfig.setOutputSize(
         stage_2_model_input_width,
-        stage_2_model_input_height,
-        mode=dai.ImageManipConfig.ResizeMode.LETTERBOX,
+        stage_2_model_input_height
     )
     resize_non_focused.initialConfig.setFrameType(frame_type)
     input_node.link(resize_non_focused.inputImage)
@@ -82,6 +82,41 @@ with dai.Pipeline(device) as pipeline:
     non_focused_bridge = pipeline.create(SafeImgDetectionsBridge).build(
         non_focused_nn.out
     )
+
+    eye_script_non_focused = pipeline.create(dai.node.Script)
+
+    eye_script_non_focused.setScript(generate_script_content(
+        resize_width=512,
+        resize_height=512,
+    ))
+
+    non_focused_nn.out.link(eye_script_non_focused.inputs["det_in"])
+
+    input_node.link(eye_script_non_focused.inputs["preview"])
+
+    eye_crop_non_focused = pipeline.create(dai.node.ImageManip)
+    eye_crop_non_focused.setMaxOutputFrameSize(512 * 512 * 3)
+    eye_crop_non_focused.initialConfig.setOutputSize(512, 512)
+    eye_crop_non_focused.initialConfig.setFrameType(frame_type)
+    eye_crop_non_focused.inputConfig.setMaxSize(50)
+    eye_crop_non_focused.inputImage.setMaxSize(50)
+    eye_crop_non_focused.setNumFramesPool(50)
+    eye_crop_non_focused.inputConfig.setWaitForMessage(True)
+
+    eye_script_non_focused.outputs["manip_cfg"].link(eye_crop_non_focused.inputConfig)
+    eye_script_non_focused.outputs["manip_img"].link(eye_crop_non_focused.inputImage)
+
+    gather_eyes_non_focused = pipeline.create(GatherData).build(args.fps_limit)
+    eye_crop_non_focused.out.link(gather_eyes_non_focused.input_data)
+
+    non_focused_nn.out.link(gather_eyes_non_focused.input_reference)
+
+    eye_mosaic_non_focused = pipeline.create(MosaicLayoutNode).build(
+        crops_input=gather_eyes_non_focused.out,
+        target_size=(640, 640),
+        frame_type=frame_type,
+    )
+    eye_mosaic_non_focused.frame_type = frame_type
 
     # stage1 resize + NN
     resize_stage1 = pipeline.create(dai.node.ImageManip)
@@ -138,13 +173,41 @@ with dai.Pipeline(device) as pipeline:
     )
     gather = pipeline.create(GatherData).build(args.fps_limit)
     stage2_detections_bridge.out.link(gather.input_data)
-    stage1_nn.out.link(gather.input_reference)
+    stage1_detections_bridge.out.link(gather.input_reference)
+
+    fullframe_remap = pipeline.create(Stage2CropToFullRemapNode).build(
+        gathered_pair_out=gather.out
+    )
+
+    test = pipeline.create(ImgDetectionsBridge).build(fullframe_remap.out)
 
     gather_crops = pipeline.create(GatherData).build(args.fps_limit)
     stage_1_detection_crop.out.link(gather_crops.input_data)
     stage1_nn.out.link(gather_crops.input_reference)
 
-    # mosaic from crop stream
+    eye_script_focused = pipeline.create(dai.node.Script)
+
+    eye_script_focused.setScript(generate_script_content(
+        resize_width=512,
+        resize_height=512,
+    ))
+
+    test.out.link(eye_script_focused.inputs["det_in"])
+
+    input_node.link(eye_script_focused.inputs["preview"])
+
+    eye_crop_stage_2 = pipeline.create(dai.node.ImageManip)
+    eye_crop_stage_2.setMaxOutputFrameSize(512 * 512 * 3)
+    eye_crop_stage_2.initialConfig.setOutputSize(512, 512)
+    eye_crop_stage_2.initialConfig.setFrameType(frame_type)
+    eye_crop_stage_2.inputConfig.setMaxSize(50)
+    eye_crop_stage_2.inputImage.setMaxSize(50)
+    eye_crop_stage_2.setNumFramesPool(50)
+    eye_crop_stage_2.inputConfig.setWaitForMessage(True)
+
+    eye_script_focused.outputs["manip_cfg"].link(eye_crop_stage_2.inputConfig)
+    eye_script_focused.outputs["manip_img"].link(eye_crop_stage_2.inputImage)
+
     mosaic_layout = pipeline.create(MosaicLayoutNode).build(
         crops_input=gather_crops.out,
         target_size=(stage_2_model_input_width, stage_2_model_input_height),
@@ -158,6 +221,20 @@ with dai.Pipeline(device) as pipeline:
         mosaic_size=(stage_2_model_input_width, stage_2_model_input_height),
         crop_size=(stage_2_model_input_width, stage_2_model_input_height),
     )
+
+    gather_eyes = pipeline.create(GatherData).build(args.fps_limit)
+    eye_crop_stage_2.out.link(gather_eyes.input_data)
+
+    fullframe_remap.out.link(gather_eyes.input_reference)
+
+    eye_mosaic_stage_2 = pipeline.create(MosaicLayoutNode).build(
+        crops_input=gather_eyes.out,
+        target_size=(640, 640),
+        frame_type=frame_type,
+    )
+    eye_mosaic_stage_2.frame_type = frame_type
+
+
 
     # encoders
     video_enc = pipeline.create(dai.node.VideoEncoder)
@@ -176,6 +253,18 @@ with dai.Pipeline(device) as pipeline:
         fps=args.fps_limit, profile=dai.VideoEncoderProperties.Profile.H264_HIGH
     )
 
+    eye_mosaic_stage_2_enc = pipeline.create(dai.node.VideoEncoder)
+    eye_mosaic_stage_2_enc.setDefaultProfilePreset(
+        fps=args.fps_limit, profile=dai.VideoEncoderProperties.Profile.H264_HIGH
+    )
+    eye_mosaic_stage_2_enc.setRateControlMode(dai.VideoEncoderProperties.RateControlMode.VBR)
+
+    eye_mosaic_non_focused_enc = pipeline.create(dai.node.VideoEncoder)
+    eye_mosaic_non_focused_enc.setDefaultProfilePreset(
+        fps=args.fps_limit, profile=dai.VideoEncoderProperties.Profile.H264_HIGH
+    )
+    eye_mosaic_non_focused_enc.setRateControlMode(dai.VideoEncoderProperties.RateControlMode.VBR)
+
     if args.media_path:
         out_NV12 = convert_to_nv12(replay.out, INPUT_WIDTH, INPUT_HEIGHT)
         out_NV12.out.link(video_enc.input)
@@ -191,6 +280,12 @@ with dai.Pipeline(device) as pipeline:
     )
     resize_non_focused_NV12.out.link(non_focused_enc.input)
 
+    eye_mosaic_stage_2_NV12 = convert_to_nv12(eye_mosaic_stage_2.output, 640, 640)
+    eye_mosaic_stage_2_NV12.out.link(eye_mosaic_stage_2_enc.input)
+
+    eye_mosaic_non_focused_NV12 = convert_to_nv12(eye_mosaic_non_focused.output, 640, 640)
+    eye_mosaic_non_focused_NV12.out.link(eye_mosaic_non_focused_enc.input)
+
     # visualizer topics
     visualizer.addTopic("Video", video_enc.out, "images")
     visualizer.addTopic("Detections Stage 1", stage1_nn.out, "annotations")
@@ -199,7 +294,10 @@ with dai.Pipeline(device) as pipeline:
 
     visualizer.addTopic("Detections Stage 2 Crops", mosaic_annotation.out, "annotations")
 
-    visualizer.addTopic("Non Focused Video", non_focused_enc.out, "images")
+    visualizer.addTopic("Eyes Mosaic", eye_mosaic_stage_2_enc.out, "images")
+
+    visualizer.addTopic("Eyes Mosaic Non Focused", eye_mosaic_non_focused_enc.out, "images")
+
     visualizer.addTopic("Detections Non Focused", non_focused_bridge.out, "annotations")
 
     pipeline.start()

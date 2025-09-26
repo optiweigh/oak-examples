@@ -126,7 +126,6 @@ class MosaicStage2AnnotationNode(dai.node.HostNode):
             return
 
         layout = _compute_mosaic_layout(len(gathered))
-
         out = gathered[0]
 
         merged_dets: List = []
