@@ -75,6 +75,9 @@ class Stage2CropToFullRemapNode(dai.node.HostNode):
 
         if not gathered:
             empty = ImgDetectionsExtended()
+            empty.setTimestamp(ref.getTimestamp())
+            empty.setSequenceNum(ref.getSequenceNum())
+            empty.setTransformation(ref.getTransformation())
             self.out.send(empty)
             return
 

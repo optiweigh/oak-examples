@@ -300,6 +300,12 @@ with dai.Pipeline(device) as pipeline:
 
     visualizer.addTopic("Detections Non Focused", non_focused_bridge.out, "annotations")
 
+    visualizer.addTopic("NN input Eye Detection", resize_non_focused.out, "images")
+
+    visualizer.addTopic("Full Frame eyes detection", fullframe_remap.out, "annotations")
+
+    visualizer.addTopic("NN input Face Detection", resize_stage1.out, "images")
+
     pipeline.start()
     visualizer.registerPipeline(pipeline)
 

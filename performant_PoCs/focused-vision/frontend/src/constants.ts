@@ -3,7 +3,7 @@ export const CAPTION_FONT = "'Patrick Hand', 'Caveat', 'Gloria Hallelujah', curs
 
 export const topicGroups = {
   Video: "A",
-  "Detections Stage 1": "A",
+  "Full Frame eyes detection": "A",
   "Crops Mosaic": "B",
   "Detections Stage 2 Crops": "B",
   "Eyes Mosaic": "C",
@@ -12,15 +12,18 @@ export const topicGroups = {
 };
 
 // default topics for each stream - only the specific topics for each mode
-export const VIDEO_TOPICS_FOCUSED = ["Video", "Detections Stage 1"];
+export const VIDEO_TOPICS_FOCUSED = ["Video", "Full Frame eyes detection"];
 export const VIDEO_TOPICS_NON_FOCUSED = ["Video", "Detections Non Focused"];
 export const FACE_MOSAIC_TOPICS = ["Crops Mosaic", "Detections Stage 2 Crops"];
 export const EYES_MOSAIC_FOCUSED_TOPICS = ["Eyes Mosaic"];
 export const EYES_MOSAIC_NON_FOCUSED_TOPICS = ["Eyes Mosaic Non Focused"];
+export const NN_INPUT_FACE_TOPICS = ["NN input Face Detection", "Detections Stage 1"];
+export const NN_INPUT_EYE_TOPICS = ["NN input Eye Detection", "Detections Non Focused"];
+
 
 // Create separate defaultOpenAll arrays for each mode
-export const defaultOpenAllFocused = ["Video", "Detections Stage 1", "Crops Mosaic", "Detections Stage 2 Crops", "Eyes Mosaic"];
-export const defaultOpenAllNonFocused = ["Video", "Detections Non Focused", "Eyes Mosaic Non Focused"];
+export const defaultOpenAllFocused = ["Video", "Detections Stage 1", "Crops Mosaic", "Detections Stage 2 Crops", "Eyes Mosaic", "NN input Face Detection", "Full Frame eyes detection"];
+export const defaultOpenAllNonFocused = ["Video", "Detections Non Focused", "Eyes Mosaic Non Focused", "NN input Eye Detection"];
 
 // Separate arrays for video-only streams (no annotations)
 export const defaultOpenAllVideoOnlyFocused = ["Video", "Crops Mosaic", "Detections Stage 2 Crops", "Eyes Mosaic"];
