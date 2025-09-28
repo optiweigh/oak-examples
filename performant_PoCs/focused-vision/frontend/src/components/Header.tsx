@@ -1,6 +1,11 @@
 import { css } from "../../styled-system/css/css.mjs";
 
-export function Header() {
+interface HeaderProps {
+  faceDetectionEnabled: boolean;
+  onFaceDetectionToggle: () => void;
+}
+
+export function Header({ faceDetectionEnabled, onFaceDetectionToggle }: HeaderProps) {
   return (
     <header
       className={css({
@@ -14,9 +19,27 @@ export function Header() {
       </h1>
 
       <div className={css({ display: "flex", alignItems: "center", gap: "md" })}>
-        <div className={css({ fontSize: "sm", color: "gray.600" })}>
-          Video → Face Mosaic → Eyes Mosaic
-        </div>
+        <button
+          onClick={onFaceDetectionToggle}
+          className={css({
+            paddingX: "lg",
+            paddingY: "md",
+            borderRadius: "lg",
+            borderWidth: "2px",
+            borderColor: faceDetectionEnabled ? "green.500" : "gray.300",
+            backgroundColor: faceDetectionEnabled ? "green.50" : "white",
+            color: faceDetectionEnabled ? "green.700" : "gray.700",
+            _hover: {
+              backgroundColor: faceDetectionEnabled ? "green.100" : "gray.100",
+              borderColor: faceDetectionEnabled ? "green.600" : "gray.400"
+            },
+            fontWeight: "600",
+            fontSize: "md",
+            transition: "all 0.2s ease-in-out",
+          })}
+        >
+          {faceDetectionEnabled ? "✓ Face Detection Enabled" : "Enable Face Detection"}
+        </button>
       </div>
     </header>
   );

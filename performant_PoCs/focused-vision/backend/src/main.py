@@ -9,6 +9,7 @@ from utils.mosaic_layout_node import MosaicLayoutNode
 from utils.mosaic_stage_2_annotation_node import MosaicStage2AnnotationNode
 from utils.safe_img_detections_bridge import SafeImgDetectionsBridge
 from utils.stage2_to_full_annotation_node import Stage2CropToFullRemapNode
+from utils.letterbox_unmap_crop_node import UnletterboxDetectionsNode
 
 _, args = initialize_argparser()
 
@@ -70,7 +71,8 @@ with dai.Pipeline(device) as pipeline:
     resize_non_focused.setMaxOutputFrameSize(stage_2_model_input_width * stage_2_model_input_height * 3)
     resize_non_focused.initialConfig.setOutputSize(
         stage_2_model_input_width,
-        stage_2_model_input_height
+        stage_2_model_input_height,
+        mode=dai.ImageManipConfig.ResizeMode.LETTERBOX,
     )
     resize_non_focused.initialConfig.setFrameType(frame_type)
     input_node.link(resize_non_focused.inputImage)
@@ -79,8 +81,16 @@ with dai.Pipeline(device) as pipeline:
         resize_non_focused.out, stage_2_model_archive
     )
 
-    non_focused_bridge = pipeline.create(SafeImgDetectionsBridge).build(
-        non_focused_nn.out
+    non_focused_bridge = pipeline.create(ImgDetectionsBridge).build(non_focused_nn.out)
+
+    non_focused_remapped = pipeline.create(UnletterboxDetectionsNode).build(
+        det_in=non_focused_nn.out,
+        preview=input_node,
+        model_size=(stage_2_model_input_width, stage_2_model_input_height),
+    )
+
+    non_focused_remapped_bridge = pipeline.create(SafeImgDetectionsBridge).build(
+        non_focused_remapped.out
     )
 
     eye_script_non_focused = pipeline.create(dai.node.Script)
@@ -90,7 +100,7 @@ with dai.Pipeline(device) as pipeline:
         resize_height=512,
     ))
 
-    non_focused_nn.out.link(eye_script_non_focused.inputs["det_in"])
+    non_focused_remapped.out.link(eye_script_non_focused.inputs["det_in"])
 
     input_node.link(eye_script_non_focused.inputs["preview"])
 
@@ -109,7 +119,7 @@ with dai.Pipeline(device) as pipeline:
     gather_eyes_non_focused = pipeline.create(GatherData).build(args.fps_limit)
     eye_crop_non_focused.out.link(gather_eyes_non_focused.input_data)
 
-    non_focused_nn.out.link(gather_eyes_non_focused.input_reference)
+    non_focused_remapped.out.link(gather_eyes_non_focused.input_reference)
 
     eye_mosaic_non_focused = pipeline.create(MosaicLayoutNode).build(
         crops_input=gather_eyes_non_focused.out,
@@ -179,7 +189,7 @@ with dai.Pipeline(device) as pipeline:
         gathered_pair_out=gather.out
     )
 
-    test = pipeline.create(ImgDetectionsBridge).build(fullframe_remap.out)
+    fullframe_remap_bridge = pipeline.create(ImgDetectionsBridge).build(fullframe_remap.out)
 
     gather_crops = pipeline.create(GatherData).build(args.fps_limit)
     stage_1_detection_crop.out.link(gather_crops.input_data)
@@ -192,7 +202,7 @@ with dai.Pipeline(device) as pipeline:
         resize_height=512,
     ))
 
-    test.out.link(eye_script_focused.inputs["det_in"])
+    fullframe_remap_bridge.out.link(eye_script_focused.inputs["det_in"])
 
     input_node.link(eye_script_focused.inputs["preview"])
 
@@ -298,13 +308,15 @@ with dai.Pipeline(device) as pipeline:
 
     visualizer.addTopic("Eyes Mosaic Non Focused", eye_mosaic_non_focused_enc.out, "images")
 
-    visualizer.addTopic("Detections Non Focused", non_focused_bridge.out, "annotations")
+    visualizer.addTopic("Detections Non Focused Remapped", non_focused_remapped_bridge.out, "annotations")
 
     visualizer.addTopic("NN input Eye Detection", resize_non_focused.out, "images")
 
     visualizer.addTopic("Full Frame eyes detection", fullframe_remap.out, "annotations")
 
     visualizer.addTopic("NN input Face Detection", resize_stage1.out, "images")
+
+    visualizer.addTopic("Detections NN Non Focused", non_focused_bridge.out, "annotations")
 
     pipeline.start()
     visualizer.registerPipeline(pipeline)
