@@ -40,10 +40,16 @@ with dai.Pipeline(device) as pipeline:
         right=right_out,
         presetMode=dai.node.StereoDepth.PresetMode.FAST_DENSITY,
     )
-    coloredDepth = pipeline.create(ApplyColormap).build(stereo.disparity)
+    
+    align = pipeline.create(dai.node.ImageAlign)
+    stereo.depth.link(align.input)
+    cam_out.link(align.inputAlignTo)
+    
+    coloredDepth = pipeline.create(ApplyColormap).build(align.outputAligned)
     coloredDepth.setColormap(cv2.COLORMAP_JET)
+    # coloredDepth.setMaxValue(47000)
 
-    point_tracker = pipeline.create(PointTracker, frame_width=FRAME_WIDTH, frame_height=FRAME_HEIGHT).build(cam_out, stereo.depth)
+    point_tracker = pipeline.create(PointTracker, frame_width=FRAME_WIDTH, frame_height=FRAME_HEIGHT).build(cam_out, align.outputAligned)
     calibration_data = device.readCalibration()
     camera_matrix = np.array(calibration_data.getCameraIntrinsics(dai.CameraBoardSocket.CAM_A, FRAME_WIDTH, FRAME_HEIGHT))
     

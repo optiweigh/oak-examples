@@ -40,7 +40,6 @@ function App() {
                         
                         if (parsedResponse?.ok) {
                             setTrackingEnabled(parsedResponse.tracking_enabled);
-                            console.log('Tracking mode:', parsedResponse.mode);
                         }
                     } catch (e) {
                         console.error('Error toggling tracking:', e);
@@ -91,7 +90,6 @@ function App() {
         }
     }, [connection.connected]);
 
-    // Get initial tracking status when connected
     useEffect(() => {
         if (connection.connected && connection.daiConnection) {
             (connection.daiConnection as any).postToService(

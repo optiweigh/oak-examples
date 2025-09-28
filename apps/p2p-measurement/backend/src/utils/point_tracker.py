@@ -2,7 +2,6 @@ import depthai as dai
 import numpy as np
 import cv2
 from typing import List, Tuple, Optional
-import json
 from depthai_nodes.utils import AnnotationHelper
 from .distance_calculator import DistanceCalculator
 
@@ -14,6 +13,7 @@ BBOX_COLOR = POINT_COLOR
 DISTANCE_LINE_COLOR = (0, 0.9, 1, 0.9)  # Brighter blue, more opaque
 DISTANCE_TEXT_COLOR = DISTANCE_LINE_COLOR
 DISTANCE_TEXT_BG_COLOR = (0, 0, 0, 0.8)
+
 
 class PointTracker(dai.node.HostNode):    
     bbox_increase_step = 5
