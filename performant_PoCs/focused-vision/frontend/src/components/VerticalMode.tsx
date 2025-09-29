@@ -10,7 +10,8 @@ import {
   defaultOpenAllFocused,
   defaultOpenAllNonFocused,
   NN_INPUT_FACE_TOPICS,
-  NN_INPUT_EYE_TOPICS
+  NN_INPUT_EYE_TOPICS,
+  FACE_MOSAIC_TOPICS
 } from "../constants";
 import { ZigZagArrow } from "./ZigZagArrow";
 
@@ -62,31 +63,20 @@ export function VerticalMode({ connected, faceDetectionEnabled }: VerticalModePr
               {faceDetectionEnabled ? "Original Video with Face Detection" : "Original Video with Direct Eye Detection"}
             </h2>
             <div className={css({ flex: 1, minHeight: "500px", pointerEvents: "none" })}>
-              {faceDetectionEnabled ? (
                 <PatchedStreams
                   key={`video-focused-${connected ? "on" : "off"}`}
-                  topicGroups={{
+                  topicGroups={faceDetectionEnabled ? {
                     Video: "A",
                     "Full Frame eyes detection": "A",
-                  }}
-                  defaultTopics={VIDEO_TOPICS_FOCUSED}
-                  allowedTopics={VIDEO_TOPICS_FOCUSED}
-                  hideToolbar
-                  disableZoom
-                />
-              ) : (
-                <PatchedStreams
-                  key={`video-non-focused-${connected ? "on" : "off"}`}
-                  topicGroups={{
+                  } : {
                     Video: "A",
                     "Detections Non Focused Remapped": "A",
                   }}
-                  defaultTopics={VIDEO_TOPICS_NON_FOCUSED}
-                  allowedTopics={VIDEO_TOPICS_NON_FOCUSED}
+                  defaultTopics={faceDetectionEnabled ? VIDEO_TOPICS_FOCUSED : VIDEO_TOPICS_NON_FOCUSED}
+                  allowedTopics={faceDetectionEnabled ? VIDEO_TOPICS_FOCUSED : VIDEO_TOPICS_NON_FOCUSED}
                   hideToolbar
                   disableZoom
                 />
-              )}
             </div>
           </section>
 
@@ -192,29 +182,20 @@ export function VerticalMode({ connected, faceDetectionEnabled }: VerticalModePr
               {faceDetectionEnabled ? "Original Video with Face Detection" : "Original Video with Direct Eye Detection"}
             </h2>
             <div className={css({ flex: 1, minHeight: "500px", pointerEvents: "none" })}>
-              {faceDetectionEnabled ? (
                 <PatchedStreams
                   key={`video-focused-${connected ? "on" : "off"}`}
-                  topicGroups={{
+                  topicGroups={faceDetectionEnabled ? {
                     Video: "A",
                     "Full Frame eyes detection": "A",
-                  }}
-                  defaultTopics={VIDEO_TOPICS_FOCUSED}
-                  allowedTopics={VIDEO_TOPICS_FOCUSED}
-                  disableZoom
-                />
-              ) : (
-                <PatchedStreams
-                  key={`video-non-focused-${connected ? "on" : "off"}`}
-                  topicGroups={{
+                  } : {
                     Video: "A",
                     "Detections Non Focused Remapped": "A",
                   }}
-                  defaultTopics={VIDEO_TOPICS_NON_FOCUSED}
-                  allowedTopics={VIDEO_TOPICS_NON_FOCUSED}
+                  defaultTopics={faceDetectionEnabled ? VIDEO_TOPICS_FOCUSED : VIDEO_TOPICS_NON_FOCUSED}
+                  allowedTopics={faceDetectionEnabled ? VIDEO_TOPICS_FOCUSED : VIDEO_TOPICS_NON_FOCUSED}
+                  hideToolbar
                   disableZoom
                 />
-              )}
             </div>
           </section>
           
@@ -283,8 +264,8 @@ export function VerticalMode({ connected, faceDetectionEnabled }: VerticalModePr
                 <PatchedStreams
                   key={`face-mosaic-${connected ? "on" : "off"}`}
                   topicGroups={topicGroups}
-                  defaultTopics={defaultOpenAllFocused}
-                  allowedTopics={["Crops Mosaic", "Detections Stage 2 Crops"]}
+                  defaultTopics={FACE_MOSAIC_TOPICS}
+                  allowedTopics={FACE_MOSAIC_TOPICS}
                   hideToolbar
                   disableZoom
                 />
