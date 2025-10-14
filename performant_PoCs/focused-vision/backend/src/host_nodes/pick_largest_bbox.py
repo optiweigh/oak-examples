@@ -1,15 +1,11 @@
 
-from typing import List, Tuple
 import depthai as dai
-from depthai_nodes import ImgDetectionsExtended
-
-from depthai_nodes.message.gathered_data import GatheredData
 
 from depthai_nodes import ImgDetectionsExtended
-from depthai_nodes.message import Keypoints
+from depthai_nodes.node import BaseHostNode
 
 
-class PickLargestBbox(dai.node.HostNode):
+class PickLargestBbox(BaseHostNode):
     """"""
 
     def build(self, nn_output: dai.Node.Output) -> "PickLargestBbox":

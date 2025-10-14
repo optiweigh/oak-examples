@@ -9,6 +9,7 @@ from utils.arguments import initialize_argparser
 from utils.pipeline_build_helpers import build_h264_stream
 
 _, args = initialize_argparser()
+args.device = "1631075878"
 
 HIGH_RES_WIDTH, HIGH_RES_HEIGHT = 6000, 6000
 LOW_RES_WIDTH, LOW_RES_HEIGHT = 640, 640
@@ -30,7 +31,24 @@ with dai.Pipeline(device) as pipeline:
         low_res=(LOW_RES_WIDTH, LOW_RES_HEIGHT),
         fps=args.fps_limit,
     )
+    # 1-stage face detection
+    face_det_1_stage_manip = pipeline.create(dai.node.ImageManip)
+    face_det_1_stage_manip.setMaxOutputFrameSize(320 * 240 * 3)
+    face_det_1_stage_manip.initialConfig.setOutputSize(320, 240, mode=dai.ImageManipConfig.ResizeMode.STRETCH)
+    face_det_1_stage_manip.initialConfig.setFrameType(frame_type)
+    face_det_1_stage_manip.inputConfig.setMaxSize(20)
+    face_det_1_stage_manip.inputImage.setMaxSize(20)
+    rgb_low_res_out.link(face_det_1_stage_manip.inputImage)
+    model_description = dai.NNModelDescription(FACE_DETECTION_MODEL)
+    model_description.platform = platform
+    face_detection_1_stage_nn = pipeline.create(ParsingNeuralNetwork).build(
+        face_det_1_stage_manip.out, model_description
+    )
+    largest_face_detection = host_nodes.PickLargestBbox().build(face_detection_1_stage_nn.out)
+    face_detection_1_stage_nn_as_img_det = host_nodes.SafeImgDetectionsExtendedBridge().build(largest_face_detection.out)
+    face_detection_1_stage_nn_a_as_img_det = host_nodes.CreateBlackDetectionIfNoDetection().build(face_detection_1_stage_nn_as_img_det.out)
 
+    # 2-stage face detection
     model_description = dai.NNModelDescription(PEOPLE_DETECTION_MODEL)
     model_description.platform = platform
     # model_archive = dai.NNArchive(dai.getModelFromZoo(model_description))
@@ -53,7 +71,6 @@ with dai.Pipeline(device) as pipeline:
         pool_size=5,
         cfg_queue_size=5,
     )
-
     # face detection model
     model_description = dai.NNModelDescription(FACE_DETECTION_MODEL)
     model_description.platform = platform
@@ -83,7 +100,7 @@ with dai.Pipeline(device) as pipeline:
     head_cropper_low_res = pipe.build_roi_cropper(
         pipeline=pipeline,
         preview_stream=rgb_low_res_out,
-        det_stream=head_detection_as_img_frame.out,
+        det_stream=face_detection_1_stage_nn_a_as_img_det.out,
         out_size=(320, 320),
         frame_type=frame_type,
         padding=0.02,
@@ -108,7 +125,7 @@ with dai.Pipeline(device) as pipeline:
     # )
     visualizer.addTopic("People detections NN", largest_people_detection.out, "people_annotations")
     visualizer.addTopic("Face detection NN", map_dets_to_original_frame.out, "face_annotations")
-    # visualizer.addTopic("Face detections original", face_detection_nn.out, "face_detections_original")
+    visualizer.addTopic("Face detections 1 stage", face_detection_1_stage_nn.out, "face_detections_1_stage")
     # visualizer.addTopic(f"People crop manip", people_crop_nn_manip_out, "people_crop_manip")
     visualizer.addTopic("640x640 RGB", rgb_low_res_encoder, "low_res_image")
     # visualizer.addTopic("High Res RGB", rgb_high_res_encoder, "high_res_image")

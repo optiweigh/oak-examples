@@ -1,3 +1,4 @@
+from .create_black_detection_if_input_empty import CreateBlackDetectionIfNoDetection
 from .crop_person_detection_weist_down import CropPersonDetectionWaistDown
 from .decrease_fps import DecreaseFps
 from .map_detections_to_original_frame import MapDetectionsToOriginalFrame
