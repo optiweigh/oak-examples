@@ -11,7 +11,7 @@ from utils.pipeline_build_helpers import build_h264_stream
 _, args = initialize_argparser()
 args.device = "1631075878"
 
-HIGH_RES_WIDTH, HIGH_RES_HEIGHT = 6000, 6000
+HIGH_RES_WIDTH, HIGH_RES_HEIGHT = 2000, 2000
 LOW_RES_WIDTH, LOW_RES_HEIGHT = 640, 640
 PEOPLE_DETECTION_MODEL = "luxonis/scrfd-person-detection:25g-640x640"
 FACE_DETECTION_MODEL = "luxonis/yunet:320x240"
