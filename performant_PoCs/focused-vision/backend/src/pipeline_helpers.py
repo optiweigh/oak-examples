@@ -58,13 +58,13 @@ def create_rgb(
     rgb = pipeline.create(dai.node.Camera).build()
     # rgb.initialControl.setManualExposure(30_000, 105)
     if high_res[0] > 4000 or high_res[1] > 3000:
-        # high_res_out = rgb.requestOutput(size=high_res, type=frame_type, fps=fps)
+        high_res_out = rgb.requestOutput(size=high_res, type=frame_type, fps=fps)
         manip = pipeline.create(dai.node.ImageManip)
         manip.initialConfig.setOutputSize(*low_res, mode=dai.ImageManipConfig.ResizeMode.LETTERBOX)
         manip.setMaxOutputFrameSize(low_res[0] * low_res[1] * 3)
-        # high_res_out.link(manip.inputImage)
+        high_res_out.link(manip.inputImage)
         low_res_out = manip.out
     else:
-        # high_res_out = rgb.requestOutput(size=high_res, type=frame_type, fps=fps)
+        high_res_out = rgb.requestOutput(size=high_res, type=frame_type, fps=fps)
         low_res_out = rgb.requestOutput(size=low_res, type=frame_type, fps=fps)
-    return low_res_out
+    return low_res_out, high_res_out

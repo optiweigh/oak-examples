@@ -22,7 +22,7 @@ class MapDetectionsToOriginalFrame(dai.node.HostNode):
         return self
 
     def process(self, matched_detections: dai.Buffer) -> None:
-        assert (matched_detections, GatheredData)
+        assert isinstance(matched_detections, GatheredData)
         matched_detections: GatheredData
         people_detections: dai.ImgDetections = matched_detections.reference_data
         face_detections: list[dai.ImgDetections] = matched_detections.gathered
