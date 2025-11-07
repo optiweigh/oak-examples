@@ -174,6 +174,7 @@ uvc_bind() {
         fi
         sleep 0.1
     done
+    sleep 2
 }
 
 uvc_unbind() {
@@ -223,8 +224,8 @@ case "$1" in
     sleep 1 # Allow USB to setup
 
     retries=0
-    max_retries=5
-    backoff=2
+    max_retries=1000
+    backoff=5
     child_pid=0
 
     while [ $retries -lt $max_retries ]; do
