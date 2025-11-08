@@ -16,7 +16,7 @@ class Router(dai.node.HostNode):
 
     def build(self, node_out: dai.Node.Output, rgb_out: dai.Node.Output) -> "Router":
         self.link_args(node_out, rgb_out)
-        self.sendProcessingToPipeline(False)
+        self.sendProcessingToPipeline(True)
         return self
 
     def process(self, detections: dai.Buffer, rgb: dai.ImgFrame) -> None:

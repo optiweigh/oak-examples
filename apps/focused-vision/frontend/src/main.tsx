@@ -1,12 +1,13 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
-import './index.css';
+import "./styles.css";
 import '@luxonis/depthai-viewer-common/styles';
 import '@luxonis/common-fe-components/styles';
 import '@luxonis/depthai-pipeline-lib/styles';
-import App from './App.tsx';
+import App from "./App.tsx";
 import {BrowserRouter, Route, Routes} from "react-router";
 import {DepthAIContext} from "@luxonis/depthai-viewer-common";
+
 
 // This function extracts the base path with app version from the current URL.
 // This is essential for access via domain luxonis.app

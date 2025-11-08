@@ -10,7 +10,7 @@ class FaceDetectionFromGatheredData(dai.node.HostNode):
 
     def build(self, node_out: dai.Node.Output) -> "HeadDetectionFromGatheredData":
         self.link_args(node_out)
-        self.sendProcessingToPipeline(False)
+        self.sendProcessingToPipeline(True)
         return self
 
     def process(self, gathered_data: dai.Buffer) -> ImgDetectionsExtended:

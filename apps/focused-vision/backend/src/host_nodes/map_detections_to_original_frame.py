@@ -18,7 +18,7 @@ class MapDetectionsToOriginalFrame(dai.node.HostNode):
 
     def build(self, nn_output: dai.Node.Output) -> "MapDetectionsToOriginalFrame":
         self.link_args(nn_output)
-        self.sendProcessingToPipeline(False)
+        self.sendProcessingToPipeline(True)
         return self
 
     def process(self, matched_detections: dai.Buffer) -> None:

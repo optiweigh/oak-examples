@@ -8,9 +8,13 @@ class SafeImgDetectionsExtendedBridge(ImgDetectionsBridge):
     Type-aware ImgDetectionsBridge: only converts when input is ImgDetections.
     Otherwise, forwards the message as-is.
     """
+
     def process(self, msg: dai.Buffer) -> None:
         if isinstance(msg, ImgDetectionsExtended):
             super().process(msg)
             return
         else:
             self.out.send(msg)
+
+    def ignore_rotation(self):
+        self.setIgnoreAngle(True)

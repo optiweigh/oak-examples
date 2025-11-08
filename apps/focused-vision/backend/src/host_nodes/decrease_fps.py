@@ -13,7 +13,7 @@ class DecreaseFps(dai.node.HostNode):
 
     def build(self, node_out: dai.Node.Output) -> "DecreaseFps":
         self.link_args(node_out)
-        self.sendProcessingToPipeline(False)
+        self.sendProcessingToPipeline(True)
         return self
 
     def process(self, _any: dai.Buffer) -> None:

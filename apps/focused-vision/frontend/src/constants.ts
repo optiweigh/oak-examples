@@ -1,21 +1,27 @@
-export const topicGroups = {
-  Video: "A",
-  "Full Frame eyes detection": "A",
-  "Crops Mosaic": "B",
-  "Detections Stage 2 Crops": "B",
-  "Eyes Mosaic": "C",
-  "Eyes Mosaic Non Focused": "D",
-  "Detections NN Non Focused": "E",
-  "Detections Non Focused Remapped": "F",
+// src/constants.ts
+
+// 1) low-res with face detections overlayed
+export const LOW_RES_TOPIC_GROUPS = {
+  "low_res_image": "A",
+  "face detections": "A",
 };
 
-export const VIDEO_TOPICS_FOCUSED = ["Video", "Full Frame eyes detection"];
-export const VIDEO_TOPICS_NON_FOCUSED = ["Video", "Detections Non Focused Remapped"];
-export const FACE_MOSAIC_TOPICS = ["Crops Mosaic", "Detections Stage 2 Crops"];
-export const EYES_MOSAIC_FOCUSED_TOPICS = ["Eyes Mosaic"];
-export const EYES_MOSAIC_NON_FOCUSED_TOPICS = ["Eyes Mosaic Non Focused"];
-export const NN_INPUT_FACE_TOPICS = ["NN input Face Detection", "Detections Stage 1"];
-export const NN_INPUT_EYE_TOPICS = ["NN input Eye Detection", "Detections NN Non Focused"];
+// what is visible by default on that panel
+export const LOW_RES_DEFAULT_TOPICS = ["low_res_image", "face detections"];
 
-export const defaultOpenAllFocused = ["Video", "Detections Stage 1", "Crops Mosaic", "Detections Stage 2 Crops", "Eyes Mosaic", "NN input Face Detection", "Full Frame eyes detection"];
-export const defaultOpenAllNonFocused = ["Video", "Detections NN Non Focused", "Eyes Mosaic Non Focused", "NN input Eye Detection", "Detections Non Focused Remapped"];
+// we allow both to be turned on/off, but panel will only show these
+export const LOW_RES_ALLOWED_TOPICS = ["low_res_image", "face detections"];
+
+// 2) non-focused head crops
+export const NON_FOCUS_HEAD_CROPS_TOPIC_GROUPS = {
+  "non_focus_head_crops": "A",
+};
+export const NON_FOCUS_HEAD_CROPS_DEFAULT = ["non_focus_head_crops"];
+export const NON_FOCUS_HEAD_CROPS_ALLOWED = ["non_focus_head_crops"];
+
+// 3) focused vision head crops
+export const FOCUSED_VISION_HEAD_CROPS_TOPIC_GROUPS = {
+  "focused_vision_head_crops": "A",
+};
+export const FOCUSED_VISION_HEAD_CROPS_DEFAULT = ["focused_vision_head_crops"];
+export const FOCUSED_VISION_HEAD_CROPS_ALLOWED = ["focused_vision_head_crops"];

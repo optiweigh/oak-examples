@@ -1,0 +1,62 @@
+/* src/styles.css */
+@layer reset, base, tokens, recipes, utilities;
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 16px;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.caption {
+  margin-top: 6px;
+  max-width: 720px;
+  line-height: 1.4;
+  color: #4b5563;
+}
+
+.streams-row {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.stream-card {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  padding: 12px 12px 6px 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+  box-shadow: 0 10px 25px -15px rgba(15, 23, 42, 0.15);
+}
+
+.stream-title {
+  margin: 0 0 8px 0;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.stream-body {
+  flex: 1;
+  min-height: 360px;
+  /* don’t let the user click inside streams if you want it passive */
+  pointer-events: none;
+}

@@ -16,7 +16,8 @@
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
 		"react-router": "^7.5.0",
-		"react-router-dom": "^7.5.0"
+		"react-router-dom": "^7.5.0",
+		"@radix-ui/react-use-previous": "1.0.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
