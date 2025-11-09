@@ -3,14 +3,14 @@
 // 1) low-res with face detections overlayed
 export const LOW_RES_TOPIC_GROUPS = {
   "low_res_image": "A",
-  "face detections": "A",
+  "face_detections": "A",
 };
 
 // what is visible by default on that panel
-export const LOW_RES_DEFAULT_TOPICS = ["low_res_image", "face detections"];
+export const LOW_RES_DEFAULT_TOPICS = ["low_res_image", "face_detections"];
 
 // we allow both to be turned on/off, but panel will only show these
-export const LOW_RES_ALLOWED_TOPICS = ["low_res_image", "face detections"];
+export const LOW_RES_ALLOWED_TOPICS = ["low_res_image", "face_detections"];
 
 // 2) non-focused head crops
 export const NON_FOCUS_HEAD_CROPS_TOPIC_GROUPS = {

@@ -16,7 +16,6 @@ interface LuxonisStreamProps {
 }
 
 const LuxonisStream: React.FC<LuxonisStreamProps> = ({
-  connected,
   title,
   topicGroups,
   defaultTopics,
@@ -27,7 +26,6 @@ const LuxonisStream: React.FC<LuxonisStreamProps> = ({
       <h2 className="stream-title">{title}</h2>
       <div className="stream-body">
         <PatchedStreams
-          key={`lowres-${connected ? "on" : "off"}`}
           topicGroups={topicGroups}
           defaultTopics={defaultTopics}
           allowedTopics={allowedTopics}
