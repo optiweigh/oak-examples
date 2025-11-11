@@ -7,19 +7,19 @@ const PatchedStreams = Streams as unknown as React.ComponentType<any>;
 
 interface LuxonisStreamProps {
   title: string;
-  topicGroups: Record<string, string>;
   defaultTopics: string[];
   allowedTopics: string[];
   // for your case: low_res_image uses detections, others don’t
+  topicGroups?: Record<string, string>;
   hideToolbar?: boolean;
   connected?: boolean;
 }
 
 const LuxonisStream: React.FC<LuxonisStreamProps> = ({
   title,
-  topicGroups,
   defaultTopics,
   allowedTopics,
+  topicGroups = {},
 }) => {
   return (
     <section className="stream-card">
@@ -29,6 +29,7 @@ const LuxonisStream: React.FC<LuxonisStreamProps> = ({
           topicGroups={topicGroups}
           defaultTopics={defaultTopics}
           allowedTopics={allowedTopics}
+          hideToolbar
         />
       </div>
     </section>
