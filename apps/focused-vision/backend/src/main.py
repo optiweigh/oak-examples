@@ -20,7 +20,7 @@ from utils.pipeline_build_helpers import build_h264_stream
 logger = logging.getLogger(__name__)
 
 _, args = initialize_argparser()
-args.device = "1631075878"
+# args.device = "1631075878"
 
 logger.error(f"StartingIII")
 HIGH_RES_WIDTH, HIGH_RES_HEIGHT = 2000, 2000

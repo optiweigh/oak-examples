@@ -1,7 +1,6 @@
 // src/App.tsx
 import LuxonisStream from "./components/LuxonisStream";
 import {
-  LOW_RES_TOPIC_GROUPS,
   LOW_RES_DEFAULT_TOPICS,
   LOW_RES_ALLOWED_TOPICS,
   NON_FOCUS_HEAD_CROPS_DEFAULT,
@@ -26,7 +25,6 @@ export default function App() {
         {/* 1) low-res with face detections */}
         <LuxonisStream
           title="Low-res image (with face detections)"
-          topicGroups={LOW_RES_TOPIC_GROUPS}
           defaultTopics={LOW_RES_DEFAULT_TOPICS}
           allowedTopics={LOW_RES_ALLOWED_TOPICS}
         />
