@@ -122,7 +122,7 @@ with dai.Pipeline(device) as pipeline:
     )
 
     visualizer.addTopic("640x640 RGB", rgb_low_res_encoder, "low_res_image")
-    visualizer.addTopic("NN detections", face_detection_nn.out, "face_detections")
+    visualizer.addTopic("NN detections", face_detection_nn.out, "low_res_image")
     visualizer.addTopic("Non-Focus Head Crops", head_crops_non_focused.out, "non_focus_head_crops")
     visualizer.addTopic("Focused Vision Head Crops", head_crops_focused.out, "focused_vision_head_crops")
     logger.error(f"Starting Pipeline")
@@ -131,6 +131,7 @@ with dai.Pipeline(device) as pipeline:
 
     counter = 0
     while pipeline.isRunning():
+        pipeline.processTasks()
         key = visualizer.waitKey(1)
         counter += 1
         if counter % 2_000 == 0:

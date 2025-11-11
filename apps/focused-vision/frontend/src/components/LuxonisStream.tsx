@@ -3,7 +3,7 @@ import React from "react";
 import { Streams } from "@luxonis/depthai-viewer-common";
 
 // the viewer component isn’t always nicely typed for custom props
-const PatchedStreams = Streams as unknown as React.ComponentType<any>;
+// const PatchedStreams = Streams as unknown as React.ComponentType<any>;
 
 interface LuxonisStreamProps {
   title: string;
@@ -25,7 +25,7 @@ const LuxonisStream: React.FC<LuxonisStreamProps> = ({
     <section className="stream-card">
       <h2 className="stream-title">{title}</h2>
       <div className="stream-body">
-        <PatchedStreams
+        <Streams
           topicGroups={topicGroups}
           defaultTopics={defaultTopics}
           allowedTopics={allowedTopics}

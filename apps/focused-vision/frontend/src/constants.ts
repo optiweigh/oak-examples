@@ -2,7 +2,8 @@
 
 // 1) low-res with face detections overlayed
 export const LOW_RES_TOPIC_GROUPS = {
-  "640x640 RGB": "NN detections",
+  "640x640 RGB": "A",
+  "NN detections": "A"
 };
 
 // what is visible by default on that panel
