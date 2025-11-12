@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 _, args = initialize_argparser()
 # args.device = "1631075878"
 
-logger.error(f"StartingIII")
+logger.error(f"Starting")
 HIGH_RES_WIDTH, HIGH_RES_HEIGHT = 2000, 2000
 LOW_RES_WIDTH, LOW_RES_HEIGHT = 640, 640
 PEOPLE_DETECTION_MODEL = "luxonis/scrfd-person-detection:25g-640x640"
@@ -34,7 +34,7 @@ platform = device.getPlatform().name
 
 frame_type = dai.ImgFrame.Type.BGR888i if platform == "RVC4" else dai.ImgFrame.Type.BGR888p
 if not args.fps_limit:
-    args.fps_limit = 5
+    args.fps_limit = 15
 
 with dai.Pipeline(device) as pipeline:
     rgb_low_res_out, rgb_high_res_out = pipe.create_rgb(
