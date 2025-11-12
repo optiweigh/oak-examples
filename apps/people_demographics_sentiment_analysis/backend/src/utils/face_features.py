@@ -2,7 +2,7 @@ from typing import List, Tuple, Optional
 from dataclasses import dataclass
 import depthai as dai
 import numpy as np
-from depthai_nodes import ImgDetectionsExtended, Classifications, Predictions
+from depthai_nodes import ImgDetectionsExtended, Classifications, Predictions, GatheredData
 
 
 @dataclass
@@ -17,12 +17,6 @@ class FaceFeature:
     rid: Optional[dai.Buffer] = None                # set later by PeopleFacesJoin, not here
 
 
-@dataclass
-class FaceData:
-    sequence_number: int
-    faces: List[FaceFeature]
-
-
 class FaceFeaturesMerger:
     """
     A class that matches age, gender, emotion and reid attributes for each face detection.
@@ -31,52 +25,44 @@ class FaceFeaturesMerger:
       - crops_gd (GatheredData)
       - reid_gd (GatheredData)
     Returns:
-      FaceData(sequence_number, list of FaceFeature)
+      - faces: List[FaceFeature]
     """
-    def merge(self, age_gender_gd, emotions_gd, crops_gd, reid_gd) -> FaceData:
-        ref = age_gender_gd.reference_data
-        assert isinstance(ref, ImgDetectionsExtended), "Expected ImgDetectionsExtended"
+    def merge(self, age_gender: GatheredData, emotions: GatheredData, crops: GatheredData, reid: GatheredData) -> List[FaceFeature]:
+        reference = age_gender.reference_data
+        assert isinstance(reference, ImgDetectionsExtended), "Expected ImgDetectionsExtended"
 
-        age_gender_groups = age_gender_gd.gathered
-        emotion_groups = emotions_gd.gathered
-        reid_groups = reid_gd.gathered
-        crop_frames = crops_gd.gathered
-        detections = list(ref.detections)
+        age_gender_groups = age_gender.gathered
+        emotion_groups = emotions.gathered
+        reid_groups = reid.gathered
+        crop_frames = crops.gathered
+        detections = list(reference.detections)
 
-        assert all(isinstance(msg, dai.NNData) for msg in reid_groups)
-
-        n = min(len(detections), len(age_gender_groups), len(emotion_groups), len(crop_frames), len(reid_groups))
+        assert all(isinstance(msg, dai.NNData) for msg in reid_groups), "Expected dai.NNData"
 
         faces: List[FaceFeature] = []
 
-        for i in range(n):
-            det = detections[i]
-            bbox = det.rotated_rect.getOuterRect()
-            age_msg = age_gender_groups[i]["0"]
-            gender_msg = age_gender_groups[i]["1"]
-            emotion_msg = emotion_groups[i]
-            crop_frame = crop_frames[i]
+        for detection, age_gender_msg, emotion_msg, crop_frame, reid_msg in zip(detections, age_gender_groups, emotion_groups, crop_frames, reid_groups):
+            bbox = detection.rotated_rect.getOuterRect()
+            age_msg: Predictions = age_gender_msg["0"]
+            gender_msg: Classifications = age_gender_msg["1"]
 
-            embedding = self._extract_embedding(reid_groups[i])
+            embedding = self._extract_embedding(reid_msg)
             if embedding is not None:
                 embedding = self._l2_normalize(embedding)
 
             face = FaceFeature(
-                face_det_conf=det.confidence,
+                face_det_conf=detection.confidence,
                 bbox=bbox,
                 age=age_msg,
                 gender=gender_msg,
                 emotion=emotion_msg,
                 crop=crop_frame,
                 embedding=embedding,
-                rid=None
+                rid=None,
             )
             faces.append(face)
 
-        return FaceData(
-            sequence_number=int(ref.getSequenceNum()),
-            faces=faces
-        )
+        return faces
 
     @staticmethod
     def _extract_embedding(nn_msg) -> Optional[np.ndarray]:

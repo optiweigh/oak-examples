@@ -99,12 +99,12 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
                     emotion_msg = face["emotion"]
                     face_crop = face["crop"]
 
-                    age_pred = getattr(age_msg, "prediction", None)
-                    gender = getattr(gender_msg, "top_class", None)
-                    emotion = getattr(emotion_msg, "top_class", None)
+                    age_pred = age_msg.prediction
+                    gender = gender_msg.top_class
+                    emotion = emotion_msg.top_class
 
-                    gender_score = getattr(gender_msg, "top_score", None)
-                    emotion_score = getattr(emotion_msg, "top_score", None)
+                    gender_score = gender_msg.top_score
+                    emotion_score = emotion_msg.top_score
 
                     if not (isinstance(age_pred, (int, float)) and gender and emotion):
                         continue
@@ -236,6 +236,34 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
 
     def placeholder_url(self) -> str:
         return f"{self.PLACEHOLDER_URL}?t={self._emit_seq}"
+
+    def visualizer_get_faces_payload(self, _=None):
+        '''
+        Returns latest face detections and face statistics to the frontend.
+        '''
+
+        payload = self.latest_payload
+
+        if not payload:
+            return {
+                "faces": [],
+                "stats": {
+                    "age": 0.0,
+                    "males": 0.0,
+                    "females": 0.0,
+                    "emotions": {
+                        "Happiness": 0.0,
+                        "Neutral": 0.0,
+                        "Surprise": 0.0,
+                        "Anger": 0.0,
+                        "Sadness": 0.0,
+                        "Fear": 0.0,
+                        "Disgust": 0.0,
+                        "Contempt": 0.0,
+                    },
+                },
+            }
+        return payload
 
     @staticmethod
     def _get_txt(msg: Optional[dai.Buffer]) -> Optional[str]:

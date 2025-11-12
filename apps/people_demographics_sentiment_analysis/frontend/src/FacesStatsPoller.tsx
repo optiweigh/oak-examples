@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { useConnection } from "@luxonis/depthai-viewer-common";
+import { useDaiConnection } from "@luxonis/depthai-viewer-common";
 
 export function FacesStatsPoller() {
-  const connection = useConnection();
+  const connection = useDaiConnection();
 
   useEffect(() => {
     if (!connection.connected) return;

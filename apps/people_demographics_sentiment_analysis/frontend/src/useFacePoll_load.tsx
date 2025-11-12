@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useConnection } from "@luxonis/depthai-viewer-common";
+import { useDaiConnection } from "@luxonis/depthai-viewer-common";
 
 export type EmotionName =
   | "Happiness" | "Anger" | "Neutral" | "Sadness"
@@ -39,7 +39,7 @@ function shallowEqualFaces(a: (FaceMeta | undefined)[], b: (FaceMeta | undefined
 }
 
 export function useFacesPoll() {
-  const { connected, daiConnection } = useConnection();
+  const { connected, daiConnection } = useDaiConnection();
   const [faces, setFaces] = useState<(FaceMeta | undefined)[]>([undefined, undefined, undefined]);
   const [stats, setStats] = useState<FaceStats | undefined>(undefined);
 

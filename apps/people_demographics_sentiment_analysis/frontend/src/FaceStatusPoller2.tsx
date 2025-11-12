@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import { useConnection } from "@luxonis/depthai-viewer-common";
+import { useDaiConnection } from "@luxonis/depthai-viewer-common";
 
 export function FacesStatsPoller() {
-  const { connected, daiConnection } = useConnection();
+  const { connected, daiConnection } = useDaiConnection();
   const inFlight = useRef(false);
   const timer = useRef<number | null>(null);
 

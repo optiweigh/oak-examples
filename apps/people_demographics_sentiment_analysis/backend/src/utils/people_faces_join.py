@@ -1,13 +1,15 @@
-from typing import Dict, List, Optional, Tuple
 import depthai as dai
+from typing import Dict, List, Optional, Tuple
 from collections import deque
 from dataclasses import dataclass
 import numpy as np
+import time
 
-from depthai_nodes import GatheredData, ImgDetectionsExtended
-from .face_features import FaceFeaturesMerger, FaceData, FaceFeature
+from depthai_nodes import GatheredData
+from .face_features import FaceFeaturesMerger, FaceFeature
+from .math_helpers import bbox_area, bboxes_overlap_area, cos_similarity, norm
 
-LIVE = (dai.Tracklet.TrackingStatus.TRACKED, dai.Tracklet.TrackingStatus.NEW)
+LIVE = (dai.Tracklet.TrackingStatus.TRACKED, dai.Tracklet.TrackingStatus.LOST, dai.Tracklet.TrackingStatus.NEW)
 REID_MATCH_THRESHOLD = 0.4          # similarity threshold for reidentification of a person
 
 
@@ -22,13 +24,14 @@ class TrackState:
 @dataclass
 class MemoryEntry:
     embeddings_mean: np.ndarray             # normalized mean embedding
+    last_seen: float
 
 
-class PeopleFacesJoin(dai.node.ThreadedHostNode):
+class PeopleFacesJoin(dai.node.HostNode):
 
     """
     A node for matching face detections with person detections (tracklets).
-    Internally uses FaceFeaturesMerger to produce FaceData(face features list).
+    Internally uses FaceFeaturesMerger to produce face features list.
     Inputs:
       - in_tracklets: dai.Tracklets (list of person tracklets with id, status, roi)
       - in_age_gender: GatheredData (reference_data=ImgDetectionsExtended, gathered=[MessageGroup {"0": age(Predictions), "1": gender(Classifications)}])
@@ -41,155 +44,91 @@ class PeopleFacesJoin(dai.node.ThreadedHostNode):
     def __init__(self) -> None:
         super().__init__()
 
-        self.in_tracklets = self.createInput()
+        self.in_track = self.createInput()
         self.in_age_gender = self.createInput()
         self.in_emotions = self.createInput()
         self.in_crops = self.createInput()
         self.in_reid = self.createInput()
-        self.out = self.createOutput()
 
-        self._tracklets_buffer: Dict[int, dai.Tracklets] = {}
-        self._age_gender_buffer: Dict[int, GatheredData] = {}
-        self._emotions_buffer: Dict[int, GatheredData] = {}
-        self._reid_buffer: Dict[int, GatheredData] = {}
-        self._crops_buffer: Dict[int, GatheredData] = {}
-
-        self._face_merger = FaceFeaturesMerger()
+        self._face_features_merger = FaceFeaturesMerger()
 
         self.k_face_samples = 5
-        self.state_by_tl_id: Dict[int, TrackState] = {}
+        self.tracklet_reid_states: Dict[int, TrackState] = {}
+
         self.memory: Dict[str, MemoryEntry] = {}
+        self.max_memory = 100
         self.next_rid = 0
 
-    def build(self, tracklets, age_gender, emotions, crops, reid):
-        tracklets.link(self.in_tracklets)
-        age_gender.link(self.in_age_gender)
-        emotions.link(self.in_emotions)
-        crops.link(self.in_crops)
-        reid.link(self.in_reid)
+    def build(self, track: dai.Tracklets, age_gender: dai.Node.Output, emotions: dai.Node.Output, crops: dai.Node.Output, reid: dai.Node.Output):
+        self.link_args(track, age_gender, emotions, crops, reid)
         return self
 
-    def run(self) -> None:
-        while self.isRunning():
+    def process(self,
+                track: dai.Tracklets,
+                age_gender: dai.Buffer,
+                emotions: dai.Buffer,
+                crops: dai.Buffer,
+                reid: dai.Buffer,
+                ) -> None:
 
-            tl = self.in_tracklets.tryGet()
-            age_gender_msg = self.in_age_gender.tryGet()
-            emotions_msg = self.in_emotions.tryGet()
-            reid_msg = self.in_reid.tryGet()
-            crop_msg = self.in_crops.tryGet()
+        # Merge face attributes (age, gender, emotion, crop, embedding) into a list of FaceFeature objects
+        faces: List[FaceFeature] = self._face_features_merger.merge(age_gender=age_gender, emotions=emotions, crops=crops, reid=reid)
 
-            if tl is not None:
-                k = self.get_key(tl)
-                self._tracklets_buffer[k] = tl
+        # Filter person tracklets to only include those which are currently LIVE
+        people: List[dai.Tracklet] = [tracklet for tracklet in track.tracklets if tracklet.status in LIVE]
+        live_tracklets_ids = {tracklet.id for tracklet in people}
+        self._remove_terminated_tracklets_states(live_tracklet_ids=live_tracklets_ids)
 
-            if age_gender_msg is not None:
-                k = self.get_key_gd(age_gender_msg)
-                self._age_gender_buffer[k] = age_gender_msg
+        aligned_face_features: List[dai.MessageGroup] = [dai.MessageGroup() for _ in people]
 
-            if emotions_msg is not None:
-                k = self.get_key_gd(emotions_msg)
-                self._emotions_buffer[k] = emotions_msg
-
-            if crop_msg is not None:
-                k = self.get_key_gd(crop_msg)
-                self._crops_buffer[k] = crop_msg
-
-            if reid_msg is not None:
-                k = self.get_key_gd(reid_msg)
-                self._reid_buffer[k] = reid_msg
-
-            for key in list(self._tracklets_buffer.keys()):
-                if (key in self._age_gender_buffer and key in self._emotions_buffer and key in self._crops_buffer and key in self._reid_buffer):
-                    self._merge(key)
-
-    def _merge(self, k: int) -> None:
-
-        track = self._tracklets_buffer.pop(k, None)
-        age_gender = self._age_gender_buffer.pop(k, None)
-        emotion = self._emotions_buffer.pop(k, None)
-        reid = self._reid_buffer.pop(k, None)
-        crop = self._crops_buffer.pop(k, None)
-
-        if track is None or age_gender is None or emotion is None or crop is None or reid is None:
-            return
-
-        face_data: FaceData = self._face_merger.merge(age_gender, emotion, crop, reid)
-        faces: List[FaceFeature] = face_data.faces
-
-        # Filter live tracklets
-        people: List[dai.Tracklet] = [tl for tl in track.tracklets if tl.status in LIVE]
-
-        live_tl_ids = {tl.id for tl in people}
-        self.state_by_tl_id = {k: v for k, v in self.state_by_tl_id.items() if k in live_tl_ids}
-
-        aligned: List[dai.MessageGroup] = [dai.MessageGroup() for _ in people]
-
+        # Match each detected face to a person tracklet based on maximum bounding box overlap
         for face in faces:
-            face_box = face.bbox
+            idx, ratio = self._best_person_for_face(face.bbox, people)
+            if idx is None or ratio < 0.6:
+                continue
 
-            best_overlap, best_idx = 0.0, -1
+            tracklet = people[idx]
+            tracklet_state = self._get_reid_state(tracklet_id=tracklet.id)
 
-            for i, tl in enumerate(people):
-                person_box = (
-                    tl.roi.topLeft().x, tl.roi.topLeft().y,
-                    tl.roi.bottomRight().x, tl.roi.bottomRight().y
-                )
-                overlap = self._overlap_area(person_box, face_box)
-                if overlap > best_overlap:
-                    best_overlap = overlap
-                    best_idx = i
+            # Update RE-ID status
+            self._update_reid_state(tracklet_state=tracklet_state, embedding=face.embedding)
 
-            face_area = self._area(face_box)
-            if best_idx >= 0 and face_area > 0 and best_overlap >= 0.6 * face_area:
-
-                tl_id = people[best_idx].id
-                tl_state: TrackState = self._get_reid_state(tl_id)
-
-                # Add the embedding only while undecided (TBD)
-                emb = getattr(face, "embedding", None)
-                if emb is not None and not tl_state.decided:
-                    tl_state.embeddings.append(emb)
-
-                # Decide when K samples collected
-                if (not tl_state.decided) and (len(tl_state.embeddings) >= self.k_face_samples):
-                    emb_mean = self._embeddings_mean(list(tl_state.embeddings))
-                    match_rid, _ = self._match_memory(emb_mean)
-                    if match_rid is None:
-                        rid = self._promote_new(emb_mean)
-                        tl_state.state, tl_state.rid, tl_state.decided = "NEW", rid, True
-                    else:
-                        tl_state.state, tl_state.rid, tl_state.decided = "REID", match_rid, True
-
-                mg = dai.MessageGroup()
-                mg["age"] = face.age
-                mg["gender"] = face.gender
-                mg["emotion"] = face.emotion
-                mg["crop"] = face.crop
-
-                if tl_state.state:
-                    st_buf = dai.Buffer()
-                    st_buf.setData(tl_state.state.encode("utf-8"))
-                    mg["rid_status"] = st_buf
-
-                if tl_state.rid:
-                    rid_buf = dai.Buffer()
-                    rid_buf.setData(tl_state.rid.encode("utf-8"))
-                    mg["re_id"] = rid_buf
-
-                aligned[best_idx] = mg
+            # Build per-person message group
+            aligned_face_features[idx] = self._build_msg_group(face=face, tracklet_state=tracklet_state)
 
         filtered = dai.Tracklets()
         filtered.tracklets = people
         filtered.setTimestamp(track.getTimestamp())
         filtered.setSequenceNum(track.getSequenceNum())
 
-        out = GatheredData(reference_data=filtered, gathered=aligned)
+        out = GatheredData(reference_data=filtered, gathered=aligned_face_features)
         out.setTimestamp(track.getTimestamp())
         out.setSequenceNum(track.getSequenceNum())
         self.out.send(out)
 
-    def _get_reid_state(self, tl_id: int) -> TrackState:
-        state = self.state_by_tl_id.get(tl_id)
+    # --------------- Face-Person alignment helpers ---------------
+
+    def _best_person_for_face(self, face_box: Tuple, people: List[dai.Tracklet]) -> Tuple[Optional[int], float]:
+        best_idx, best_overlap = None, 0.0
+        for i, tracklet in enumerate(people):
+            person_box = self._tracklet_to_bbox(tracklet=tracklet)
+            overlap = bboxes_overlap_area(person_box, face_box)
+            if overlap > best_overlap:
+                best_overlap, best_idx = overlap, i
+
+        face_area = bbox_area(face_box)
+        ratio = best_overlap / face_area if face_area > 0 else 0.0
+        return best_idx, ratio
+
+    @staticmethod
+    def _tracklet_to_bbox(tracklet: dai.Tracklet) -> Tuple[float, float, float, float]:
+        roi = tracklet.roi
+        return (roi.topLeft().x, roi.topLeft().y, roi.bottomRight().x, roi.bottomRight().y)
+
+    # --------------- Per-Tracklet RE-ID state helpers ---------------
+
+    def _get_reid_state(self, tracklet_id: int) -> TrackState:
+        state = self.tracklet_reid_states.get(tracklet_id)
         if state is None:
             state = TrackState(
                 embeddings=deque(maxlen=self.k_face_samples),
@@ -197,63 +136,102 @@ class PeopleFacesJoin(dai.node.ThreadedHostNode):
                 rid=None,
                 decided=False
             )
-            self.state_by_tl_id[tl_id] = state
+            self.tracklet_reid_states[tracklet_id] = state
         return state
 
-    def _match_memory(self, proto: np.ndarray) -> Tuple[Optional[str], float]:
+    def _remove_terminated_tracklets_states(self, live_tracklet_ids: set[int]) -> None:
+        """
+        Removes track state entries for person tracklets that are no longer live/active.
+        """
+        remove = [k for k in self.tracklet_reid_states.keys() if k not in live_tracklet_ids]
+        for k in remove:
+            self.tracklet_reid_states.pop(k, None)
+
+    def _update_reid_state(self, tracklet_state: "TrackState", embedding: Optional[np.ndarray]) -> None:
+        """
+        Ingest one embedding sample if applicable. If enough samples are collected,
+        finalize the REID decision and set state/rid/decided on tracklet_state.
+        """
+        if embedding is None or tracklet_state.decided:
+            return
+
+        tracklet_state.embeddings.append(embedding)
+        if len(tracklet_state.embeddings) >= self.k_face_samples:
+            embeddings_mean = self._embeddings_mean(list(tracklet_state.embeddings))
+            match_rid = self._match_memory(embeddings_mean)
+
+            if match_rid is None:
+                rid = self._promote_new(embeddings_mean)
+                tracklet_state.state, tracklet_state.rid, tracklet_state.decided = "NEW", rid, True
+            else:
+                tracklet_state.state, tracklet_state.rid, tracklet_state.decided = "REID", match_rid, True
+
+    def _embeddings_mean(self, embeddings: List[np.ndarray]) -> np.ndarray:
+        return norm(np.mean(embeddings, axis=0))
+
+    # --------------- RE-ID Memory helpers ---------------
+
+    def _match_memory(self, embeddings_mean: np.ndarray) -> Optional[str]:
+        """
+        Compares embedding with embeddings in memory. If a person is reidentified returns best matching RID.
+        """
         if not self.memory:
-            return None, -1.0
+            return None
         best_rid, best_similarity = None, -1.0
         for rid, entry in self.memory.items():
-            similarity = self._cos(proto, entry.embeddings_mean)
-            # print(similatity, 'rid: ', rid)
+            similarity = cos_similarity(embeddings_mean, entry.embeddings_mean)
             if similarity > best_similarity:
                 best_rid, best_similarity = rid, similarity
-        # print('best similarity', best_similarity, best_rid)
-        return (best_rid if best_similarity >= REID_MATCH_THRESHOLD else None), best_similarity
+        if best_rid is not None and best_similarity >= REID_MATCH_THRESHOLD:
+            # Mark as recently used
+            self._mark_used(best_rid)
+            return best_rid
+        return None
 
-    def _promote_new(self, proto: np.ndarray) -> str:
+    def _promote_new(self, embeddings_mean: np.ndarray) -> str:
+        """
+        Insert a new identity into memory and return its RID.
+        Trims memory to self.max_memory keeping most-recently-used first.
+        """
         rid = str(self.next_rid)
         self.next_rid += 1
-        self.memory[rid] = MemoryEntry(embeddings_mean=proto)
+        self.memory[rid] = MemoryEntry(embeddings_mean=embeddings_mean, last_seen=time.time())
+        self.trim_memory(self.max_memory)
         return rid
 
-    def _embeddings_mean(self, embs: List[np.ndarray]) -> np.ndarray:
-        return self._norm(np.mean(embs, axis=0))
+    def _mark_used(self, rid: str) -> None:
+        """
+        Mark an RID as recently seen (for trimming).
+        """
+        self.memory[rid].last_seen = time.time()
 
-    @staticmethod
-    def _norm(v: np.ndarray) -> np.ndarray:
-        n = float(np.linalg.norm(v))
-        return v / (n + 1e-8)
+    def trim_memory(self, keep: int) -> None:
+        """
+        Trim memory, keeping most recently used.
+        """
+        if len(self.memory) <= keep:
+            return
+        # Newest first
+        items = sorted(self.memory.items(), key=lambda kv: kv[1].last_seen, reverse=True)[:keep]
+        self.memory = dict(items)
 
-    @staticmethod
-    def _cos(a: np.ndarray, b: np.ndarray) -> float:
-        return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-8))
+    # --------------- Payload helpers ---------------
 
-    @staticmethod
-    def _area(box):
-        x1, y1, x2, y2 = box
-        return max(0, x2 - x1) * max(0, y2 - y1)
+    def _build_msg_group(self, face: FaceFeature, tracklet_state: "TrackState") -> dai.MessageGroup:
+        mg = dai.MessageGroup()
+        mg["age"] = face.age
+        mg["gender"] = face.gender
+        mg["emotion"] = face.emotion
+        mg["crop"] = face.crop
 
-    @staticmethod
-    def _overlap_area(a, b):
-        ax1, ay1, ax2, ay2 = a
-        bx1, by1, bx2, by2 = b
-        x1, y1 = max(ax1, bx1), max(ay1, by1)
-        x2, y2 = min(ax2, bx2), min(ay2, by2)
-        if x2 > x1 and y2 > y1:
-            return (x2 - x1) * (y2 - y1)
-        return 0
+        if tracklet_state.state:
+            mg["rid_status"] = self._string_to_dai_buffer(tracklet_state.state)
+        if tracklet_state.rid:
+            mg["re_id"] = self._string_to_dai_buffer(tracklet_state.rid)
 
-    @staticmethod
-    def get_key_gd(gd: GatheredData) -> int:
-        ref = gd.reference_data
-        assert isinstance(ref, ImgDetectionsExtended), f"Expected ImgDetectionsExtended, got {type(ref)}"
-        return int(ref.getSequenceNum())
+        return mg
 
-    @staticmethod
-    def get_key(msg) -> int:
-        if hasattr(msg, "getSequenceNum"):
-            return int(msg.getSequenceNum())
-        else:
-            return int(msg.getTimestamp().total_seconds() * 1000.0)
+    def _string_to_dai_buffer(self, s: str) -> dai.Buffer:
+        buf = dai.Buffer()
+        buf.setData(s.encode("utf-8"))
+        return buf
