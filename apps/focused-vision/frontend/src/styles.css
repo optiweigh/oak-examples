@@ -58,5 +58,5 @@ body {
   flex: 1;
   min-height: 360px;
   /* don’t let the user click inside streams if you want it passive */
-  pointer-events: none;
+  /* pointer-events: none;*/
 }
