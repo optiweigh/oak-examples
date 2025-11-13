@@ -34,7 +34,7 @@ platform = device.getPlatform().name
 
 frame_type = dai.ImgFrame.Type.BGR888i if platform == "RVC4" else dai.ImgFrame.Type.BGR888p
 if not args.fps_limit:
-    args.fps_limit = 15
+    args.fps_limit = 13
 
 with dai.Pipeline(device) as pipeline:
     rgb_low_res_out, rgb_high_res_out = pipe.create_rgb(
@@ -50,10 +50,7 @@ with dai.Pipeline(device) as pipeline:
         input_resize_mode=dai.ImageManipConfig.ResizeMode.LETTERBOX,
         nn_source=FACE_DETECTION_MODEL,
         enable_detection_filtering=True,
-        # enable_tiling=True,
-        # input_size=(LOW_RES_WIDTH, LOW_RES_HEIGHT),
     )
-    # face_detection_nn.setTilingGridSize((4,4))
     largest_face_detection = host_nodes.PickLargestBbox().build(face_detection_nn.out)
     face_detection_1_stage_nn_as_img_det = host_nodes.SafeImgDetectionsExtendedBridge().build(largest_face_detection.out)
     face_detection_1_stage_nn_as_img_det.ignore_rotation()
@@ -98,6 +95,7 @@ with dai.Pipeline(device) as pipeline:
     )
     face_detection = host_nodes.FaceDetectionFromGatheredData().build(face_people_gathered.out)
     face_detection_as_img_detection = host_nodes.SafeImgDetectionsExtendedBridge().build(face_detection.out)
+    face_detection_as_img_detection.ignore_rotation()
     router = host_nodes.Router().build(face_detection_as_img_detection.out, rgb_high_res_out)
     head_cropper_high_res = pipe.build_roi_cropper(
         pipeline=pipeline,
@@ -112,6 +110,35 @@ with dai.Pipeline(device) as pipeline:
     black_image_generator = host_nodes.BlackFrame().build(router.no_detections)
     head_crops_focused = host_nodes.Merger().build(head_cropper_high_res, black_image_generator.out)
 
+    # 1 stage with tiling
+    face_detection_with_tiling_nn = pipeline.create(ExtendedNeuralNetwork)
+    face_detection_with_tiling_nn.build(
+        input=rgb_high_res_out,
+        input_resize_mode=dai.ImageManipConfig.ResizeMode.LETTERBOX,
+        nn_source=FACE_DETECTION_MODEL,
+        enable_detection_filtering=True,
+        enable_tiling=True,
+        input_size=(HIGH_RES_WIDTH, HIGH_RES_HEIGHT),
+    )
+    face_detection_with_tiling_nn.setConfidenceThreshold(0.75)
+    face_detection_with_tiling_nn.setTilingGridSize((4, 4))
+    largest_face_detection_tiling = host_nodes.PickLargestBbox().build(face_detection_with_tiling_nn.out)
+    face_detection_tiling_as_img_det = host_nodes.SafeImgDetectionsExtendedBridge().build(largest_face_detection_tiling.out)
+    face_detection_tiling_as_img_det.ignore_rotation()
+    router_tiling = host_nodes.Router().build(face_detection_tiling_as_img_det.out, rgb_high_res_out)
+    head_cropper_tiling = pipe.build_roi_cropper(
+        pipeline=pipeline,
+        preview_stream=router_tiling.rgb,
+        det_stream=router_tiling.has_detections,
+        out_size=(320, 320),
+        frame_type=frame_type,
+        padding=0.02,
+        pool_size=5,
+        cfg_queue_size=5,
+    )
+    black_image_generator_tiling = host_nodes.BlackFrame().build(router_tiling.no_detections)
+    head_crops_tiling = host_nodes.Merger().build(head_cropper_tiling, black_image_generator_tiling.out)
+
     rgb_low_res_encoder = build_h264_stream(
         pipeline,
         src=rgb_low_res_out,
@@ -123,8 +150,10 @@ with dai.Pipeline(device) as pipeline:
 
     visualizer.addTopic("640x640 RGB", rgb_low_res_encoder, "low_res_image")
     visualizer.addTopic("NN detections", face_detection_nn.out, "low_res_image")
+    visualizer.addTopic("People detections", people_detection_nn.out, "low_res_image")
     visualizer.addTopic("Non-Focus Head Crops", head_crops_non_focused.out, "non_focus_head_crops")
     visualizer.addTopic("Focused Vision Head Crops", head_crops_focused.out, "focused_vision_head_crops")
+    visualizer.addTopic("Focused with Tiling", head_crops_tiling.out, "focused_vision_tiling")
     logger.error(f"Starting Pipeline")
     pipeline.start()
     visualizer.registerPipeline(pipeline)
