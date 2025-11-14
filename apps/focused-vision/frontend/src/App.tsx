@@ -51,6 +51,7 @@ export default function App() {
 
         <LuxonisStream
           title="Naive approach"
+          caption="detect faces on downscaled low-res RGB."
           topicGroups={NON_FOCUSED_TOPIC_GROUPS}
           defaultTopics={NON_FOCUS_HEAD_CROPS_DEFAULT}
           allowedTopics={NON_FOCUS_HEAD_CROPS_ALLOWED}
@@ -58,6 +59,7 @@ export default function App() {
 
         <LuxonisStream
           title="Focused Vision with NN model chaining"
+          caption="detect person → crop high-res → detect face on the high-res crop."
           topicGroups={FOCUSED_TOPIC_GROUPS}
           defaultTopics={FOCUSED_VISION_HEAD_CROPS_DEFAULT}
           allowedTopics={FOCUSED_VISION_HEAD_CROPS_ALLOWED}
