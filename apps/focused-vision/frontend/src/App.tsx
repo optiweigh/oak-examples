@@ -50,7 +50,7 @@ export default function App() {
         />
 
         <LuxonisStream
-          title="The Naive approach"
+          title="Naive approach"
           topicGroups={NON_FOCUSED_TOPIC_GROUPS}
           defaultTopics={NON_FOCUS_HEAD_CROPS_DEFAULT}
           allowedTopics={NON_FOCUS_HEAD_CROPS_ALLOWED}

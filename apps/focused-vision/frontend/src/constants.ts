@@ -4,14 +4,13 @@
 export const LOW_RES_TOPIC_GROUPS = {
   "640x640 RGB": "A",
   "NN detections": "A",
-  "People detections": "A"
 };
 
 // what is visible by default on that panel
-export const LOW_RES_DEFAULT_TOPICS = ["640x640 RGB", "NN detections", "People detections"];
+export const LOW_RES_DEFAULT_TOPICS = ["640x640 RGB", "NN detections"];
 
 // we allow both to be turned on/off, but panel will only show these
-export const LOW_RES_ALLOWED_TOPICS = ["640x640 RGB", "NN detections", "People detections"];
+export const LOW_RES_ALLOWED_TOPICS = ["640x640 RGB", "NN detections"];
 
 // 2) non-focused head crops
 export const NON_FOCUSED_TOPIC_GROUPS = {

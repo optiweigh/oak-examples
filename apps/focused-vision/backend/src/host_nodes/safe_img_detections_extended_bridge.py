@@ -15,6 +15,3 @@ class SafeImgDetectionsExtendedBridge(ImgDetectionsBridge):
             return
         else:
             self.out.send(msg)
-
-    def ignore_rotation(self):
-        self.setIgnoreAngle(True)

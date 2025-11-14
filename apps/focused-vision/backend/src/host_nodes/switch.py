@@ -5,7 +5,7 @@ import time
 from depthai_nodes.message import ImgDetectionsExtended
 
 
-class Router(dai.node.HostNode):
+class Switch(dai.node.HostNode):
     """"""
 
     def __init__(self):

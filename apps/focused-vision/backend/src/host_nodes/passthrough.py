@@ -3,7 +3,7 @@ import depthai as dai
 import time
 
 
-class Merger(dai.node.ThreadedHostNode):
+class Passthrough(dai.node.ThreadedHostNode):
     def __init__(self):
         super().__init__() # Call the base class constructor
         self.out = self.createOutput()  # Create an output queue - this will send ImgFrame messages
