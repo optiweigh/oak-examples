@@ -85,7 +85,7 @@ class AnnotatePeopleFaces(dai.node.HostNode):
                     color_fill = GRAY_TRANSPARENT
 
                 ann.draw_rectangle((x1, y1), (x2, y2), outline_color=color, fill_color=color_fill)
-                ann.draw_text(label, (x1 + 0.005, y2 - 0.025), size=15, color=WHITE, background_color=TEXT_BG)
+                ann.draw_text(label, (x1 + 0.005, y2 - 0.025), size=18, color=WHITE, background_color=TEXT_BG)
 
         out = ann.build(timestamp=tracklets.getTimestamp(), sequence_num=tracklets.getSequenceNum())
         self.out.send(out)

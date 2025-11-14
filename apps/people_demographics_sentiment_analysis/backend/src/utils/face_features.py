@@ -7,7 +7,6 @@ from depthai_nodes import ImgDetectionsExtended, Classifications, Predictions, G
 
 @dataclass
 class FaceFeature:
-    face_det_conf: float
     bbox: Tuple[float, float, float, float]
     age: Predictions
     gender: Classifications
@@ -51,7 +50,6 @@ class FaceFeaturesMerger:
                 embedding = self._l2_normalize(embedding)
 
             face = FaceFeature(
-                face_det_conf=detection.confidence,
                 bbox=bbox,
                 age=age_msg,
                 gender=gender_msg,

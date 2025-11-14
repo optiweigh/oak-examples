@@ -79,7 +79,9 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
                 face_groups: List[dai.MessageGroup] = faces.gathered
                 now = time.monotonic()
 
-                seen_ids: List[str] = []
+                ######
+                # seen_ids: List[str] = []
+                ids_to_front: List[str] = []
 
                 for face in (face_groups):
                     if face.getNumMessages() == 0:
@@ -126,8 +128,14 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
 
                     entry = self.people.get(person_id)
                     if entry is None:
-                        self.people[person_id] = Person(age=age, gender=gender, emotion=emotion,
-                                                        crop=face_crop, last_seen=now, status=status)
+                        self.people[person_id] = Person(
+                            age=age, gender=gender,
+                            emotion=emotion,
+                            crop=face_crop,
+                            last_seen=now,
+                            status=status,
+                        )
+                        ids_to_front.append(person_id)
                     else:
                         entry.age = age
                         entry.gender = gender
@@ -136,19 +144,19 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
                         entry.last_seen = now
                         entry.status = status
 
-                    if person_id not in seen_ids:
-                        seen_ids.append(person_id)
+                        if person_id not in self.people_slots:
+                            ids_to_front.append(person_id)
 
-                for person_id in seen_ids:
+                for person_id in ids_to_front:
                     self.move_face_to_front(person_id)
-
+                ####
                 self.trim_people(keep=KEEP_PEOPLE)
 
             # emit crops + payload at 1Hz
-            now2 = time.monotonic()
-            if (now2 - self._last_emit_ts) >= self._emit_interval:
+            now = time.monotonic()
+            if (now - self._last_emit_ts) >= self._emit_interval:
                 self._emit_seq += 1
-                self._last_emit_ts = now2
+                self._last_emit_ts = now
 
                 faces_by_slot: List[dict] = []
 
@@ -191,7 +199,7 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
 
                 self.latest_payload = {
                     "seq": self._emit_seq,
-                    "timestamp": now2,
+                    "timestamp": now,
                     "faces": faces_by_slot,
                     "stats": {
                         "age": avg_age,
