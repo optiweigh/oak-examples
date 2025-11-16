@@ -118,7 +118,7 @@ with dai.Pipeline(device) as pipeline:
         enable_tiling=True,
         input_size=(HIGH_RES_WIDTH, HIGH_RES_HEIGHT),
     )
-    face_detection_with_tiling_nn.setConfidenceThreshold(0.8)
+    face_detection_with_tiling_nn.setConfidenceThreshold(0.75)
     face_detection_with_tiling_nn.setTilingGridSize((4, 4))
     largest_face_detection_tiling = host_nodes.PickLargestBbox().build(face_detection_with_tiling_nn.out)
     face_detection_tiling_as_img_det = host_nodes.SafeImgDetectionsExtendedBridge().build(largest_face_detection_tiling.out, ignore_angle=True)

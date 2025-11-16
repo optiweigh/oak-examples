@@ -43,23 +43,21 @@ export default function App() {
         })}
       >
         <LuxonisStream
-          title="RGB preview"
+          title="RGB Preview"
           topicGroups={LOW_RES_TOPIC_GROUPS}
           defaultTopics={LOW_RES_DEFAULT_TOPICS}
           allowedTopics={LOW_RES_ALLOWED_TOPICS}
         />
 
         <LuxonisStream
-          title="Naive approach"
-          caption="detect faces on downscaled low-res RGB."
+          title="Naive Approach"
           topicGroups={NON_FOCUSED_TOPIC_GROUPS}
           defaultTopics={NON_FOCUS_HEAD_CROPS_DEFAULT}
           allowedTopics={NON_FOCUS_HEAD_CROPS_ALLOWED}
         />
 
         <LuxonisStream
-          title="Focused Vision with NN model chaining"
-          caption="detect person → crop high-res → detect face on the high-res crop."
+          title="Focused Vision with NN Model Chaining"
           topicGroups={FOCUSED_TOPIC_GROUPS}
           defaultTopics={FOCUSED_VISION_HEAD_CROPS_DEFAULT}
           allowedTopics={FOCUSED_VISION_HEAD_CROPS_ALLOWED}
@@ -115,16 +113,21 @@ export default function App() {
             })}
           >
             <li>
-              <strong>Naive approach:</strong> detect faces on downscaled
+              <strong>Naive Approach:</strong> detect faces on downscaled
               low-res RGB.
             </li>
             <li>
-              <strong>NN model chaining:</strong> detect person → crop high-res
+              <strong>NN Model Chaining:</strong> detect person → crop high-res
               → detect face on the high-res crop.
             </li>
             <li>
               <strong>Tiling:</strong> detect faces on overlapping tiles of the
               high-res image, then merge results.
+            </li>
+            <li>
+              <strong>RGB Preview:</strong> H264 encoded RGB stream.
+                Face detections from the naive approach and people detections from the NN model chaining are shown
+                in the stream.
             </li>
           </ul>
         </div>
