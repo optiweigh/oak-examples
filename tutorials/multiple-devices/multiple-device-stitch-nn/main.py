@@ -2,11 +2,11 @@
 
 from depthai_nodes.node import ParsingNeuralNetwork
 from depthai_nodes.node import TilesPatcher, Tiling
-from utils.stitch import Stitch
 from utils.arguments import initialize_argparser
+from utils.stitch import Stitch
 import contextlib
 import depthai as dai
-
+import time
 
 _, args = initialize_argparser()
 
@@ -17,7 +17,13 @@ IMG_SIZES = {
     "480p": (640, 480),
     "360p": (640, 360),
 }
+# Nr of seconds in float to wait before autofocus is turned off after program start and after homography recalculation.
+AF_MSG_DELAY_S = 5.0
 IMG_SHAPE = IMG_SIZES[args.input_size]
+AF_MODE_NAMES = {
+    dai.CameraControl.AutoFocusMode.OFF: "OFF",
+    dai.CameraControl.AutoFocusMode.AUTO: "AUTO",
+}
 
 
 def createPipeline(pipeline):
@@ -27,6 +33,14 @@ def createPipeline(pipeline):
     )
     input = camRgb.inputControl.createInputQueue()
     return pipeline, input, output
+
+
+def send_af_mode(inputs, mode):
+    ctrl = dai.CameraControl()
+    ctrl.setAutoFocusMode(mode)
+    print(f"Setting autofocus mode to {AF_MODE_NAMES[mode]} for {len(inputs)} cameras.")
+    for input in inputs:
+        input.send(ctrl)
 
 
 with contextlib.ExitStack() as stack:
@@ -114,17 +128,16 @@ with contextlib.ExitStack() as stack:
     visualizer.addTopic("Stitched", stitch_pl.out_full_res)
     visualizer.addTopic("Patcher", patcher.out)
 
-    ctrl = dai.CameraControl()
-    ctrl.setAutoFocusMode(dai.CameraControl.AutoFocusMode.CONTINUOUS_VIDEO)
-
     for i, p in enumerate(pipelines):
         p.start()
-        inputs[i].send(ctrl)
 
     # Register visualizer with the first pipeline
     visualizer.registerPipeline(pipelines[0])
 
     print("Press 'r' in visualizer to recalculate homography.")
+    print(f"Autofocus will be tuned OFF after {AF_MSG_DELAY_S} seconds")
+    af_start_time = time.time()
+    af_on = True
     while pipeline.isRunning():
         pipeline.processTasks()  # run processTasks in every loop since .start() doesn't do it
         key = visualizer.waitKey(1)
@@ -132,5 +145,14 @@ with contextlib.ExitStack() as stack:
             print("Got q key from the remote connection!")
             break
         if key == ord("r"):
-            print("Got r key from the remote connection, recalculating homography.")
+            print(
+                f"Got r key from the remote connection, recalculating homography. Autofocus will be turned to AUTO for {AF_MSG_DELAY_S}s."
+            )
+            send_af_mode(inputs, dai.CameraControl.AutoFocusMode.AUTO)
+            af_on = True
             stitch_pl.recalculate_homography()
+            af_start_time = time.time()
+        if af_on and (time.time() - af_start_time > AF_MSG_DELAY_S):
+            # After AF_MSG_DELAY_S seconds send the autofocus off message to all cams to avoid flickering
+            send_af_mode(inputs, dai.CameraControl.AutoFocusMode.OFF)
+            af_on = False

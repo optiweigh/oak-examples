@@ -6,6 +6,8 @@ The browser visualizer shows the live stitched feed and detection overlays, prov
 
 At startup, the system calculates a homography between camera feeds to align them, and all subsequent warping is performed based on this fixed calibration. **Cameras are assumed to be static**; if they are moved, pressing “r” in the browser visualizer triggers a recalculation of the homography.
 
+**Autofocus of all cameras is turned ON only some seconds** after start of program and after recalculation of homography, then it is turned OFF. This is to avoid the flickering in the resulting panorama image.
+
 **Limitations:**
 
 Cameras must be **vertically aligned** and have **sufficient field-of-view overlap** for reliable stitching. The **image order (left to right) is important** and should remain consistent across runs. For best results, **use identical, well-calibrated cameras**, as differences in lens parameters or image quality can negatively impact stitching and homography accuracy.
@@ -75,7 +77,7 @@ This will run the example with resolution 720p.
 
 **Why aren’t the images stitching correctly (e.g., strange wrapping or distortion)?**
 
-Ensure that your cameras are ordered correctly from left to right, vertically aligned, and positioned as close together as possible. While focused on the web visualizer (http://localhost:8082), press r to recalculate the homography. Once you find the right camera order you will see a well stitched image.
+Ensure that your cameras are ordered correctly from left to right, vertically aligned, and positioned as close together as possible. While focused on the web visualizer (http://localhost:8082), press "r" to recalculate the homography. Once you find the right camera order you will see a well stitched image.
 
 **Why are two separate (concatenated) images shown instead of a stitched one?**
 
@@ -83,5 +85,10 @@ This usually means there isn’t enough field-of-view (FOV) overlap between came
 Try adjusting their positions to increase the overlap until stitching occurs.
 Additionally, ensure that:
 
+- Your cameras are ordered correctly from left to right, vertically aligned, and positioned as close together as possible
 - Both camera streams have similar lighting conditions (avoid direct sunlight exposure).
 - The camera lenses are clean, as smudges or fingerprints can prevent reliable keypoint detection needed for stitching.
+
+**Why is the panorama image blurry?**
+
+Autofocus is turned automatically off after some seconds to avoid flickering. It may be that for your setup, autofocus needs more time. Try pressing "r" in the web visualizer (http://localhost:8082) to recalculate homography and reset autofocus. If result is still problematic, try making `AF_MSG_DELAY_S` bigger to allow more time for autofocus. Also make sure cameras are clean as smudges or fingerprints can result in blurry images.
