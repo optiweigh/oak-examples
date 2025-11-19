@@ -14,6 +14,7 @@ export default defineConfig({
 	},
 	build: {
 		rollupOptions: {
+			maxParallelFileOps: 10,
 			output: {
 				format: "esm",
 			},
