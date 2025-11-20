@@ -152,6 +152,8 @@ do_uvc_configure() {
     log "    Creating a fresh USB gadget"
     create_uvc configs/c.1 uvc.0
     echo "super-speed" > "$GADGET/g1/max_speed"
+    echo "$MANUF" > "$GADGET/g1/strings/0x409/manufacturer"
+    echo "$PRODUCT" > "$GADGET/g1/strings/0x409/product"
 
     sleep 0.1
 }
