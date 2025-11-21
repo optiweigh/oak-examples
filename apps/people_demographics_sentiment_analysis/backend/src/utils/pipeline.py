@@ -127,7 +127,7 @@ def create_pipeline(pipeline: dai.Pipeline, fps: int, platform: str, frame_type:
     tracker = pipeline.create(dai.node.ObjectTracker)
     tracker.setDetectionLabelsToTrack([0])                  # 0 for people
     tracker.setTrackerThreshold(0.5)
-    tracker.setTrackletMaxLifespan(15)
+    tracker.setTrackletMaxLifespan(10)
     tracker.setTrackerType(dai.TrackerType.SHORT_TERM_IMAGELESS)
     tracker.setTrackerIdAssignmentPolicy(dai.TrackerIdAssignmentPolicy.UNIQUE_ID)
 

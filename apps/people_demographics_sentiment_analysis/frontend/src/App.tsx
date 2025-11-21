@@ -1,6 +1,6 @@
 // App.tsx
 import { css } from "../styled-system/css/css.mjs";
-import { Streams } from "@luxonis/depthai-viewer-common";
+import { Streams, useNavigation } from "@luxonis/depthai-viewer-common";
 import { FaceMetaBar } from "./FaceMetaBar";
 import { useFacesPoll } from "./useFacePoll_load";
 import { StatsBanner } from "./StatsBanner";
@@ -33,22 +33,30 @@ const LeftVideo: React.FC = React.memo(() => {
   );
 });
 
-const ImgBox: React.FC<{ url?: string}> = ({ url}) => (
-  <div
-    className={css({
-      position: "relative", flex: 1, minHeight: 0,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      backgroundColor: "white",
-    })}
-  >
-    <img
-      src={url ?? "/placeholders/empty.jpg"}
-      alt=""
-      draggable={false}
-      style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
-    />
-  </div>
-);
+const ImgBox: React.FC<{ url?: string }> = ({ url }) => {
+  const { makePath } = useNavigation();
+  const placeholder = useMemo(
+    () => makePath("placeholders/empty.jpg", { noSearch: true }),
+    [makePath],
+  );
+
+  return (
+    <div
+      className={css({
+        position: "relative", flex: 1, minHeight: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        backgroundColor: "white",
+      })}
+    >
+      <img
+        src={url ?? placeholder}
+        alt=""
+        draggable={false}
+        style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+      />
+    </div>
+  );
+};
 
 const CropsWithBars: React.FC = () => {
   const { faces } = useFacesPoll();

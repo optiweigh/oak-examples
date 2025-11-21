@@ -1,10 +1,10 @@
-import os
 import cv2
 import time
 import depthai as dai
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 import numpy as np
+import base64
 from depthai_nodes import GatheredData
 
 MAX_PEOPLE_SLOTS = 3
@@ -62,10 +62,7 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
         self.emotion_keys = ["Anger", "Contempt", "Disgust", "Fear", "Happiness", "Neutral", "Sadness", "Surprise"]
         self.emotion_cnt = {k: 0 for k in self.emotion_keys}
 
-        self.CROPS_DIR = "/static-fe/crops"                         # FE path to write
-        self.CROPS_URL = "/crops"                                   # URL prefix
-        self.PLACEHOLDER_URL = "/placeholders/empty.jpg"
-        os.makedirs(self.CROPS_DIR, exist_ok=True)
+        self.PLACEHOLDER_URL = "placeholders/empty.jpg"
 
     def build(self, faces: dai.Node.Output) -> "MonitorFacesNode":
         faces.link(self.in_faces)
@@ -79,8 +76,6 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
                 face_groups: List[dai.MessageGroup] = faces.gathered
                 now = time.monotonic()
 
-                ######
-                # seen_ids: List[str] = []
                 ids_to_front: List[str] = []
 
                 for face in (face_groups):
@@ -149,7 +144,6 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
 
                 for person_id in ids_to_front:
                     self.move_face_to_front(person_id)
-                ####
                 self.trim_people(keep=KEEP_PEOPLE)
 
             # emit crops + payload at 1Hz
@@ -171,14 +165,14 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
                         if crop is not None:
                             bgr = self.imgframe_to_bgr(crop)
                             if bgr is not None and bgr.size != 0:
-                                url = self.save_slot_jpg(idx, bgr)
+                                img_b64 = self.encode_bgr_to_base64(bgr)
                         payload = {
                             "id": person_id,
                             "status": entry.status,
                             "age": entry.age,
                             "gender": entry.gender,
                             "emotion": entry.emotion,
-                            "img_url": url,
+                            "img_url": f"data:image/jpeg;base64,{img_b64}"
                         }
 
                     faces_by_slot.append(payload)
@@ -234,13 +228,9 @@ class MonitorFacesNode(dai.node.ThreadedHostNode):
         self._pad_slots()
 
     # ---- saving files / urls ----
-    def save_slot_jpg(self, slot_idx: int, img_bgr: np.ndarray) -> str:
-        fs_path = os.path.join(self.CROPS_DIR, f"slot{slot_idx}.jpg")
-        if img_bgr is None or img_bgr.ndim != 3 or img_bgr.shape[2] != 3:
-            return f"{self.PLACEHOLDER_URL}?t={self._emit_seq}"
-        cv2.imwrite(fs_path, img_bgr)
-        # public URL the FE will request for the face crop
-        return f"{self.CROPS_URL}/slot{slot_idx}.jpg?t={self._emit_seq}"
+    def encode_bgr_to_base64(self, bgr):
+        _, jpeg = cv2.imencode(".jpg", bgr)
+        return base64.b64encode(jpeg.tobytes()).decode("utf-8")
 
     def placeholder_url(self) -> str:
         return f"{self.PLACEHOLDER_URL}?t={self._emit_seq}"

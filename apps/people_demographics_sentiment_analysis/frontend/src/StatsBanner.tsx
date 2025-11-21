@@ -64,12 +64,12 @@ export function StatsBanner({ stats }: { stats?: FaceStats }) {
 
       <div className={col}>
         <div className={pct} style={{ color: "#299FE9" }}>{stats.males.toFixed(1)}%</div>
-        <img className={icon} src="/icons/male.png" alt="Male" />
+        <img className={icon} src="icons/male.png" alt="Male" />
       </div>
 
       <div className={col}>
         <div className={pct} style={{ color: "#F32C7D" }}>{stats.females.toFixed(1)}%</div>
-        <img className={icon} src="/icons/female.png" alt="Female" />
+        <img className={icon} src="icons/female.png" alt="Female" />
       </div>
 
       <div className={vsep} />

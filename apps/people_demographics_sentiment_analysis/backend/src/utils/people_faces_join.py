@@ -10,7 +10,8 @@ from .face_features import FaceFeaturesMerger, FaceFeature
 from .math_helpers import bbox_area, bboxes_overlap_area, cos_similarity, norm
 
 LIVE = (dai.Tracklet.TrackingStatus.TRACKED, dai.Tracklet.TrackingStatus.LOST, dai.Tracklet.TrackingStatus.NEW)
-REID_MATCH_THRESHOLD = 0.4          # similarity threshold for reidentification of a person
+REID_MATCH_THRESHOLD = 0.38          # similarity threshold for reidentification of a person
+ADAPT_EVERY_N_EMBEDDINGS = 10
 
 
 @dataclass
@@ -25,6 +26,8 @@ class TrackState:
 class MemoryEntry:
     embeddings_mean: np.ndarray             # normalized mean embedding
     last_seen: float
+    num_samples: int
+    adapt_counter: int = 0
 
 
 class PeopleFacesJoin(dai.node.HostNode):
@@ -152,7 +155,11 @@ class PeopleFacesJoin(dai.node.HostNode):
         Ingest one embedding sample if applicable. If enough samples are collected,
         finalize the REID decision and set state/rid/decided on tracklet_state.
         """
-        if embedding is None or tracklet_state.decided:
+        if embedding is None:
+            return
+
+        if tracklet_state.decided and tracklet_state.rid is not None:
+            self._adapt_memory(tracklet_state.rid, embedding)
             return
 
         tracklet_state.embeddings.append(embedding)
@@ -161,7 +168,7 @@ class PeopleFacesJoin(dai.node.HostNode):
             match_rid = self._match_memory(embeddings_mean)
 
             if match_rid is None:
-                rid = self._promote_new(embeddings_mean)
+                rid = self._promote_new(embeddings_mean=embeddings_mean, num_samples=len(tracklet_state.embeddings))
                 tracklet_state.state, tracklet_state.rid, tracklet_state.decided = "NEW", rid, True
             else:
                 tracklet_state.state, tracklet_state.rid, tracklet_state.decided = "REID", match_rid, True
@@ -188,14 +195,42 @@ class PeopleFacesJoin(dai.node.HostNode):
             return best_rid
         return None
 
-    def _promote_new(self, embeddings_mean: np.ndarray) -> str:
+    def _adapt_memory(self, rid: str, new_embedding: np.ndarray) -> None:
+        """
+        Refine the stored embedding for a known RID.
+        """
+        entry = self.memory.get(rid)
+        if entry is None:
+            return
+
+        entry.adapt_counter += 1
+
+        if entry.adapt_counter % ADAPT_EVERY_N_EMBEDDINGS != 0:
+            return
+
+        similarity = cos_similarity(new_embedding, entry.embeddings_mean)
+        if similarity < 0.5:
+            return
+
+        n = min(entry.num_samples, 100)
+        updated_mean = (entry.embeddings_mean * n + new_embedding) / (n + 1)
+        entry.embeddings_mean = norm(updated_mean)
+        entry.num_samples = min(n + 1, 100)
+        entry.last_seen = time.time()
+        entry.adapt_counter %= ADAPT_EVERY_N_EMBEDDINGS
+
+    def _promote_new(self, embeddings_mean: np.ndarray, num_samples: int) -> str:
         """
         Insert a new identity into memory and return its RID.
         Trims memory to self.max_memory keeping most-recently-used first.
         """
         rid = str(self.next_rid)
         self.next_rid += 1
-        self.memory[rid] = MemoryEntry(embeddings_mean=embeddings_mean, last_seen=time.time())
+        self.memory[rid] = MemoryEntry(
+            embeddings_mean=embeddings_mean,
+            last_seen=time.time(),
+            num_samples=num_samples,
+        )
         self.trim_memory(self.max_memory)
         return rid
 
