@@ -1,4 +1,4 @@
-# ROS DRIVER BASIC EXAMPLE
+# ROS driver Spatial bounding boxes example
 
 This is an example of ROS driver being run as an OAK 4 app. It launches ROS driver that publishes spatial image detections and rgb pointcloud.
 Additinally, `spatial_bb` composable node from `depthai_filters` is also being run which republishes spatial detections as Marker messages to visualize bounding boxes in 3D space.

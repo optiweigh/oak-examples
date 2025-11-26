@@ -1,4 +1,4 @@
-# ROS DRIVER Custom workspace example
+# ROS driver custom workspace example
 
 This is an example of an app that allows creating custom workspaces that contain your nodes which can be serve as entrypoint to your whole ROS2 project.
 You can use that as a template for developing your custom ROS2 codebase, just use `src` directory the same way you would do that in your ROS2 workspace.
