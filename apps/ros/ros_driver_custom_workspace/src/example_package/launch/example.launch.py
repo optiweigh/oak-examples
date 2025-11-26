@@ -11,6 +11,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
+
 def launch_setup(context, *args, **kwargs):
     params_file = LaunchConfiguration("params_file")
     depthai_prefix = get_package_share_directory("depthai_ros_driver")
@@ -34,11 +35,7 @@ def launch_setup(context, *args, **kwargs):
                 "rs_compat": LaunchConfiguration("rs_compat"),
             }.items(),
         ),
-        Node(
-            package='example_package',
-            executable='example',
-            name='example'
-        ),
+        Node(package="example_package", executable="example", name="example"),
     ]
 
 
