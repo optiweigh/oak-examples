@@ -1,5 +1,5 @@
 # ROS DRIVER BASIC EXAMPLE
-This is an example of ROS driver being run as an OAK 4 app. It launches ROS driver in standalone and publishes RGB, Stereo and IMU data.t>
+This is an example of ROS driver being run as an OAK 4 app. It launches ROS driver in standalone and publishes RGB, Stereo and IMU data.
 These topics can be accessible for viewing and/or further processing directly on host.
 It is based on ROS2 Kilted, but you should be able to subscribe to topics in other distributions such as Humble or Jazzy.
 To change the behavior of the driver, you can use parameters.yaml file which is passed to the driver.
@@ -40,6 +40,7 @@ Before you begin, ensure you have the following installed on your host machine:
 ## Visualizing Data in Rviz
 
 1. In Rviz, add a new display by clicking the "Add" button in the bottom toolbar.
+Note, you can add by display type, or just by topic which will automatically add the correct display type.
 
 2. For RGB camera visualization:
    - Add a "Image" display

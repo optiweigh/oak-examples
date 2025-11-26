@@ -14,7 +14,7 @@ prepare_build_container = [
 build_steps = [
 ]
 
-entrypoint = ["bash", "-c", "source /opt/ros/kilted/setup.bash && ros2 launch dephtai_filters spatial_bb.launch.py"]
+entrypoint = ["bash", "-c", "source /opt/ros/kilted/setup.bash && ros2 launch depthai_filters spatial_bb.launch.py"]
 
 [base_image]
 api_url = "https://registry-1.docker.io" 
