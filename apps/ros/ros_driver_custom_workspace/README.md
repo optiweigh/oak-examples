@@ -9,3 +9,13 @@ This example uses ROS2 Kilted as the default distribution as this is the only on
 
 In `src` directory you can find two example packages, `example_package` and `dai_ros_plugins`. `example_package`  serves as the entrypoint and showcase of how one would set it up.
 `dai_ros_plugins` serves as an example on how to create a custom pipeline plugin for `depthai_ros_driver`. You can use the plugin developed inside as a blueprint for further development.
+
+## Troubleshooting
+
+If you encounter issues with topic names or data types, verify that your ROS2 distribution matches the one used in the example.
+You may need to adjust topic names or data types accordingly.
+
+```bash
+sudo apt install ros-$ROS_DISTRO-rmw-cyclonedds-cpp
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+```

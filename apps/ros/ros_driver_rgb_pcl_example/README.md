@@ -17,13 +17,13 @@ Before you begin, ensure you have the following installed on your host machine:
 
    ```bash
    sudo apt update
-   sudo apt install ros-<distro>-rviz2
+   sudo apt install ros-$ROS_DISTRO-rviz2
    ```
 
 2. Source your ROS2 environment:
 
    ```bash
-   source /opt/ros/<distro>/setup.bash
+   source /opt/ros/$ROS_DISTRO/setup.bash
    ```
 
 ## Running the Example
@@ -38,7 +38,7 @@ Before you begin, ensure you have the following installed on your host machine:
 2. In a new terminal, source your ROS2 environment and run Rviz2:
 
    ```bash
-   source /opt/ros/<distro>/setup.bash
+   source /opt/ros/$ROS_DISTRO/setup.bash
    rviz2
    ```
 
@@ -57,4 +57,10 @@ Before you begin, ensure you have the following installed on your host machine:
 
 ## Troubleshooting
 
-If you encounter issues with topic names or data types, verify that your ROS2 distribution matches the one used in the example. You may need to adjust topic names or data types accordingly.
+If you encounter issues with topic names or data types, verify that your ROS2 distribution matches the one used in the example.
+You may need to adjust topic names or data types accordingly.
+
+```bash
+sudo apt install ros-$ROS_DISTRO-rmw-cyclonedds-cpp
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+```
