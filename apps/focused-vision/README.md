@@ -25,11 +25,11 @@ Detects faces on downscaled (320x240px) low-res RGB
 
 This approach uses a **two-stage neural-network pipeline** for significantly improved face-detection reliability.
 
-1. **Stage 1 – Person Detection:**
-   A person is detected on the full 2000×2000 high-resolution image. The person region is then cropped at full detail.
+- **Stage 1 – Person Detection:**
+  A person is detected on the full 2000×2000 high-resolution image. The person region is then cropped at full detail.
 
-1. **Stage 2 – Face Detection on the Crop:**
-   The face detector runs on the cropped person image, downscaled to 320×240—the same input size used in the naïve approach.
+- **Stage 2 – Face Detection on the Crop:**
+  The face detector runs on the cropped person image, downscaled to 320×240—the same input size used in the naïve approach.
 
 The key difference is where the downscaling happens.
 
@@ -76,8 +76,8 @@ Once the app is built and running you can access the DepthAI Viewer locally by o
 
 ### Remote access
 
-1. You can upload the oakapp to Luxonis Hub via `oakctl`.
-1. Then you can remotely open the App UI via the App detail page (WebRTC).
+- You can upload the oakapp to Luxonis Hub via `oakctl`.
+- Then you can remotely open the App UI via the App detail page (WebRTC).
 
 # Development
 
