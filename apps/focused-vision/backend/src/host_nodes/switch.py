@@ -1,6 +1,4 @@
-
 import depthai as dai
-import time
 
 from depthai_nodes.message import ImgDetectionsExtended
 

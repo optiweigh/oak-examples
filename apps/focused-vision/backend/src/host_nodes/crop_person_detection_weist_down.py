@@ -5,7 +5,12 @@ import depthai as dai
 
 class CropPersonDetectionWaistDown(dai.node.HostNode):
     """"""
-    def __init__(self, ymin_transformer: Callable[[dai.ImgDetection], float], ymax_transformer: Callable[[dai.ImgDetection], float]) -> None:
+
+    def __init__(
+        self,
+        ymin_transformer: Callable[[dai.ImgDetection], float],
+        ymax_transformer: Callable[[dai.ImgDetection], float],
+    ) -> None:
         super().__init__()
         self._ymin_transformer = ymin_transformer
         self._ymax_transformer = ymax_transformer

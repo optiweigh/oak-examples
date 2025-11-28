@@ -10,8 +10,19 @@ class BlackFrame(dai.node.HostNode):
     def __init__(self):
         super().__init__()
         self._pipeline = self.getParentPipeline()
-        self.black_image = cv2.cvtColor(np.zeros((320, 320, 3), dtype=np.uint8), cv2.COLOR_RGB2BGR)
-        cv2.putText(self.black_image, "No Head Detected", (15, 180), cv2.FONT_HERSHEY_TRIPLEX, 0.9, (255, 255, 255), 1, cv2.LINE_AA)
+        self.black_image = cv2.cvtColor(
+            np.zeros((320, 320, 3), dtype=np.uint8), cv2.COLOR_RGB2BGR
+        )
+        cv2.putText(
+            self.black_image,
+            "No Head Detected",
+            (15, 180),
+            cv2.FONT_HERSHEY_TRIPLEX,
+            0.9,
+            (255, 255, 255),
+            1,
+            cv2.LINE_AA,
+        )
 
     def build(self, node_out: dai.Node.Output) -> "BlackFrame":
         self.link_args(node_out)

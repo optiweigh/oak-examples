@@ -1,4 +1,3 @@
-
 import depthai as dai
 
 from depthai_nodes import ImgDetectionsExtended
@@ -18,7 +17,9 @@ class PickLargestBbox(BaseHostNode):
         max_area = -1_000
         largest_bbox = None
         for detection in nn_output.detections:
-            area = detection.rotated_rect.size.width * detection.rotated_rect.size.height
+            area = (
+                detection.rotated_rect.size.width * detection.rotated_rect.size.height
+            )
             if area > max_area:
                 max_area = area
                 largest_bbox = detection
