@@ -1,52 +1,67 @@
-# Focused Vision (PoC)
+# Focused Vision
 
-This example demonstrates a **focused-vision pipeline** with a small **custom frontend**.
-On the DepthAI backend, the app produces three streams with per-stream annotations:
+The goal of **Focused Vision** is to capture an object of interest in as much detail as possible and to do all necessary
+steps on-device. It excels when the object occupies only a small part
+of the image - whether because it is physically small, relatively far from the camera, or both.
 
-- **Video** (full scene) → annotation: **Face stage 1**
-- **Face Mosaic** (high‑res face crop) → annotation: **Eyes (Crops)**
-- **Non Focused Video** (downscaled/global) → annotation: **Eyes (Non-Focused)**
+This application compares a naive face-detection approach with two **Focused Vision** approaches
+using person detection and tiling.
 
-The frontend, built using the `@luxonis/depthai-viewer-common` package, displays real-time streams:
-- **Focused mode** → shows **Video** and **Face Mosaic** (two panels)
-- **Non‑focused mode** → shows **Non Focused Video** (one panel)
-
-Annotations are grouped so each appears **only on its matching stream** in the custom frontend.
-
-> **Note:** This app can run either:
-> - in **Standalone mode (RVC4)** with the **custom frontend** and grouped annotations, or
-> - in **Peripheral mode** (host-controlled) using the **default viewer**; in this mode, annotations are **not grouped** and will be **mixed** across streams.
+> **Note:** This example works only on RVC4 in standalone mode.
 
 ## Demo
 
-![focused-vision](media/focused_vision.gif)
+![focused-vision](media/demo.gif)
+
+## Architecture
+
+![architecture](media/architecture.png)
+
+## Naive approach
+
+Detects faces on downscaled (320x240px) low-res RGB
+
+## NN model chaining
+
+This approach uses a **two-stage neural-network pipeline** for significantly improved face-detection reliability.
+
+1. **Stage 1 – Person Detection:**
+   A person is detected on the full 2000×2000 high-resolution image. The person region is then cropped at full detail.
+
+1. **Stage 2 – Face Detection on the Crop:**
+   The face detector runs on the cropped person image, downscaled to 320×240—the same input size used in the naïve approach.
+
+The key difference is where the downscaling happens.
+
+•	In the **naïve approach**, the **entire image** is downscaled to 320×240 before face detection,
+causing the face to become small and lose detail.
+
+•	In the **NN chaining approach**, only the **high-resolution person crop** is downscaled,
+preserving far more facial detail in the model’s input.
+
+As a result, the face detector receives a clearer, more information-rich image, which **substantially increases
+the chance of successful face detection.**
+
+## Tiling
+
+Tiling is a **brute-force approach** that increases face-detection reliability
+by splitting the high-resolution image into multiple overlapping regions (tiles).
+Each tile is then independently **downscaled to 320×240** and passed through the face-detection model.
+
+Because each tile represents only a **small portion** of the original image,
+more facial detail is preserved compared to downscaling the entire frame at once—making detection more likely.
+
+This method is particularly useful when the **NN Model Chaining** technique cannot be applied.
+However, it is **computationally expensive**.
+In this application, a **2×2 tiling pattern** is used, producing 4 tiles.
+Since the face-detection model must run on every tile, a 15 FPS camera effectively requires the
+neural network to process **4× the number of frames**, greatly increasing processing load.
 
 ## Usage
 
 Running this example requires a **Luxonis device** connected to your computer. Refer to the [documentation](https://docs.luxonis.com/software-v3/) to set up your device if you haven't already.
 
-Here is a list of all available parameters:
-
-```
--d DEVICE, --device DEVICE
-                    Optional name, DeviceID or IP of the camera to connect to. (default: None)
--fps FPS_LIMIT, --fps-limit FPS_LIMIT
-                    FPS limit. (default: None)
--ip IP, --ip IP     IP address to serve the frontend on. (default: None)
--p PORT, --port PORT  Port to serve the frontend on. (default: None)
-```
-
-### Prerequisites
-
-Before running the example you’ll need to build the frontend. Follow these steps:
-
-1. Install FE dependencies: `cd frontend/ && npm i`
-2. Build the FE: `npm run build`
-3. Move back to origin directory: `cd ..`
-
 ## Standalone Mode (RVC4 only)
-
-Running the example in standalone mode, the app runs on the device **with the custom frontend and grouped annotations**.
 
 To run the example in this mode, first install the `oakctl` tool using the installation instructions [here](https://docs.luxonis.com/software-v3/oak-apps/oakctl).
 
@@ -62,16 +77,9 @@ Once the app is built and running you can access the DepthAI Viewer locally by o
 ### Remote access
 
 1. You can upload the oakapp to Luxonis Hub via `oakctl`.
-2. Then you can remotely open the App UI via the App detail page (WebRTC).
+1. Then you can remotely open the App UI via the App detail page (WebRTC).
 
-## Peripheral Mode (host-controlled)
+# Development
 
-In Peripheral mode, the pipeline runs from your host and the **default viewer** is used (not the custom frontend).
-**Important:** the default viewer does **not** support per-stream annotation grouping, so annotations will be **mixed** across streams.
-
-Run:
-
-```bash
-cd backend/src
-python3 main.py
-```
+This example runs with default argument values. If you’d like to customize it, you can use it as a starting point and modify the source code, which is available [here](https://github.com/luxonis/oak-examples/edit/main/apps/focused-vision/).
+For more examples, check out our app store or browse the [oak-examples](https://github.com/luxonis/oak-examples) repository.
