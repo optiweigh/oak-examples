@@ -1,5 +1,5 @@
-identifier = "ros.driver.example"
-app_version = "1.0.0"
+identifier = "com.luxonis.ros.driver.example"
+app_version = "0.9.0"
 
 prepare_container = [
     { type = "COPY", source = "resolv.conf", target = "/etc/resolv.conf" },
