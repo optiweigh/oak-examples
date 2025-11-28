@@ -19,7 +19,7 @@ class SystemConfiguration:
         self._video_config: Optional[VideoConfig] = None
         self._model_names: Optional[ModelNames] = None
 
-    def build(self) -> 'SystemConfiguration':
+    def build(self) -> "SystemConfiguration":
         if self._args.fps_limit is None:
             self._args.fps_limit = 15
             print(
@@ -46,12 +46,16 @@ class SystemConfiguration:
 
     def get_video_config(self) -> VideoConfig:
         if self._video_config is None:
-            raise RuntimeError("SystemConfiguration.build() must be called before get_video_config().")
+            raise RuntimeError(
+                "SystemConfiguration.build() must be called before get_video_config()."
+            )
         return self._video_config
 
     def get_model_names(self) -> ModelNames:
         if self._model_names is None:
-            raise RuntimeError("SystemConfiguration.build() must be called before get_model_names().")
+            raise RuntimeError(
+                "SystemConfiguration.build() must be called before get_model_names()."
+            )
         return self._model_names
 
     @property

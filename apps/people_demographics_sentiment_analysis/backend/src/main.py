@@ -43,7 +43,9 @@ def main():
 
         archives = NNArchiveProvider(platform=platform, models=model_names)
 
-        face_det = FaceDetectionStage(pipeline=pipeline, image_source=cam_out, archive=archives.face()).build()
+        face_det = FaceDetectionStage(
+            pipeline=pipeline, image_source=cam_out, archive=archives.face()
+        ).build()
 
         face_crops = FaceCropsStage(
             pipeline=pipeline,

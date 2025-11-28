@@ -32,7 +32,9 @@ class FaceDetectionStage:
     def build(self) -> "FaceDetectionStage":
         img_manip_face = self._create_image_manip()
 
-        self._nn = self._pipeline.create(ParsingNeuralNetwork).build(img_manip_face.out, self._archive)
+        self._nn = self._pipeline.create(ParsingNeuralNetwork).build(
+            img_manip_face.out, self._archive
+        )
         self._nn.getParser().setConfidenceThreshold(0.85)
         self._nn.getParser().setIOUThreshold(0.75)
 
@@ -40,7 +42,9 @@ class FaceDetectionStage:
             face_detections=self.nn.out,
             n_face_crops=self._max_faces,
         )
-        self._filtered_face_det_bridge = self._pipeline.create(ImgDetectionsBridge).build(self._filtered_face_det.out)
+        self._filtered_face_det_bridge = self._pipeline.create(
+            ImgDetectionsBridge
+        ).build(self._filtered_face_det.out)
 
         return self
 
@@ -61,11 +65,15 @@ class FaceDetectionStage:
     @property
     def filtered_output(self) -> dai.Node.Output:
         if self._filtered_face_det is None:
-            raise RuntimeError("FaceNN.build() must be called before accessing filtered_output.")
+            raise RuntimeError(
+                "FaceNN.build() must be called before accessing filtered_output."
+            )
         return self._filtered_face_det.out
 
     @property
     def filtered_bridge_output(self) -> dai.Node.Output:
         if self._filtered_face_det_bridge is None:
-            raise RuntimeError("FaceNN.build() must be called before accessing filtered_bridge_output.")
+            raise RuntimeError(
+                "FaceNN.build() must be called before accessing filtered_bridge_output."
+            )
         return self._filtered_face_det_bridge.out

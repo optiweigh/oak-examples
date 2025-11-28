@@ -1,4 +1,3 @@
-
 import depthai as dai
 from depthai_nodes import ImgDetectionsExtended
 
@@ -7,11 +6,14 @@ class FilterNLargestBBoxes(dai.node.HostNode):
     """
     Keep only the N largest detections by area (width * height of rotated_rect).
     """
+
     def __init__(self):
         super().__init__()
         self.n_face_crops: int = 4
 
-    def build(self, face_detections: dai.Node.Output, n_face_crops: int = 4) -> "FilterNLargestBBoxes":
+    def build(
+        self, face_detections: dai.Node.Output, n_face_crops: int = 4
+    ) -> "FilterNLargestBBoxes":
         if n_face_crops < 1:
             raise ValueError("n_face_crops must be >= 1")
         self.n_face_crops = n_face_crops
@@ -19,8 +21,9 @@ class FilterNLargestBBoxes(dai.node.HostNode):
         return self
 
     def process(self, face_detections: dai.Buffer) -> None:
-        assert isinstance(face_detections, ImgDetectionsExtended), \
-            f"Expected ImgDetectionsExtended, got {type(face_detections)}"
+        assert isinstance(
+            face_detections, ImgDetectionsExtended
+        ), f"Expected ImgDetectionsExtended, got {type(face_detections)}"
 
         detections = face_detections.detections
         if not detections or len(detections) < self.n_face_crops:
@@ -28,7 +31,7 @@ class FilterNLargestBBoxes(dai.node.HostNode):
             return
 
         detections.sort(key=self._area, reverse=True)
-        n_detections = detections[:self.n_face_crops]
+        n_detections = detections[: self.n_face_crops]
 
         filtered_detections = ImgDetectionsExtended()
         filtered_detections.detections = n_detections

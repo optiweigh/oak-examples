@@ -64,12 +64,16 @@ class CameraSource:
     def preview(self) -> dai.Node.Output:
         """BGR preview stream from the camera."""
         if self._preview_out is None:
-            raise RuntimeError("CameraSource.build() must be called before accessing preview.")
+            raise RuntimeError(
+                "CameraSource.build() must be called before accessing preview."
+            )
         return self._preview_out
 
     @property
     def encoded(self) -> dai.Node.Output:
         """H.264 encoded stream."""
         if self._encoded_out is None:
-            raise RuntimeError("CameraSource.build() must be called before accessing encoded.")
+            raise RuntimeError(
+                "CameraSource.build() must be called before accessing encoded."
+            )
         return self._encoded_out

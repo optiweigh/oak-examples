@@ -19,14 +19,14 @@ K_SAMPLES_BEFORE_DECISION = 5
 @dataclass
 class TrackState:
     embeddings: deque
-    state: str                          # "TBD" | "NEW" | "REID"
+    state: str  # "TBD" | "NEW" | "REID"
     rid: Optional[str]
     decided: bool
 
 
 @dataclass
 class MemoryEntry:
-    embeddings_mean: np.ndarray         # normalized mean embedding
+    embeddings_mean: np.ndarray  # normalized mean embedding
     last_seen: float
 
 
@@ -34,7 +34,10 @@ class ReIdManager:
     """
     Maintains per-tracklet re-identification state and a global per-person embedding memory.
     """
-    def __init__(self, k_face_samples: int = K_SAMPLES_BEFORE_DECISION, max_memory: int = 100):
+
+    def __init__(
+        self, k_face_samples: int = K_SAMPLES_BEFORE_DECISION, max_memory: int = 100
+    ):
         self._k_face_samples = k_face_samples
         self._max_memory = max_memory
 
@@ -45,11 +48,14 @@ class ReIdManager:
     def cleanup(self, live_tracklet_ids: Set[int]) -> None:
         """Removes state for people who left the camera view."""
         self._tracklet_reid_states = {
-            tracklet_id: state for tracklet_id, state in self._tracklet_reid_states.items()
+            tracklet_id: state
+            for tracklet_id, state in self._tracklet_reid_states.items()
             if tracklet_id in live_tracklet_ids
         }
 
-    def update(self, tracklet_id: int, embedding: Optional[np.ndarray]) -> tuple[Optional[str], str]:
+    def update(
+        self, tracklet_id: int, embedding: Optional[np.ndarray]
+    ) -> tuple[Optional[str], str]:
         """
         Update ReID state for a given tracklet with a new embedding.
         Note: 'embedding' is expected to be already L2-normalized.
@@ -98,7 +104,9 @@ class ReIdManager:
             )
         return self._tracklet_reid_states[tracklet_id]
 
-    def _active_learning(self, rid: str, new_embedding: np.ndarray, matched: bool = False) -> None:
+    def _active_learning(
+        self, rid: str, new_embedding: np.ndarray, matched: bool = False
+    ) -> None:
         """
         Refine the stored embedding for a known RID using EMA.
 
@@ -112,18 +120,26 @@ class ReIdManager:
         entry.last_seen = time.time()
 
         if matched:
-            self._refine_embedding(entry=entry, new_embedding=new_embedding, lr=LEARNING_RATE)
+            self._refine_embedding(
+                entry=entry, new_embedding=new_embedding, lr=LEARNING_RATE
+            )
             return
 
         similarity = self._cos_similarity(entry.embeddings_mean, new_embedding)
         if similarity >= HIGH_LEARNING_THRESHOLD:
             # Strong update
-            self._refine_embedding(entry=entry, new_embedding=new_embedding, lr=LEARNING_RATE)
+            self._refine_embedding(
+                entry=entry, new_embedding=new_embedding, lr=LEARNING_RATE
+            )
         elif similarity >= MID_LEARNING_THRESHOLD:
             # Softer update
-            self._refine_embedding(entry=entry, new_embedding=new_embedding, lr=MID_LEARNING_RATE)
+            self._refine_embedding(
+                entry=entry, new_embedding=new_embedding, lr=MID_LEARNING_RATE
+            )
 
-    def _refine_embedding(self, entry: MemoryEntry, new_embedding: np.ndarray, lr: float) -> None:
+    def _refine_embedding(
+        self, entry: MemoryEntry, new_embedding: np.ndarray, lr: float
+    ) -> None:
         # EMA update
         updated = (entry.embeddings_mean * (1 - lr)) + (new_embedding * lr)
         entry.embeddings_mean = self._norm(updated)
@@ -152,15 +168,19 @@ class ReIdManager:
     def _create_new_identity(self, embeddings_mean: np.ndarray) -> str:
         rid = str(self._next_reid)
         self._next_reid += 1
-        self._memory[rid] = MemoryEntry(embeddings_mean=embeddings_mean, last_seen=time.time())
+        self._memory[rid] = MemoryEntry(
+            embeddings_mean=embeddings_mean, last_seen=time.time()
+        )
         self._trim_memory()
         return rid
 
     def _trim_memory(self) -> None:
         if len(self._memory) <= self._max_memory:
             return
-        sorted_items = sorted(self._memory.items(), key=lambda kv: kv[1].last_seen, reverse=True)
-        self._memory = dict(sorted_items[:self._max_memory])
+        sorted_items = sorted(
+            self._memory.items(), key=lambda kv: kv[1].last_seen, reverse=True
+        )
+        self._memory = dict(sorted_items[: self._max_memory])
 
     # --- internal helpers ---
     @staticmethod

@@ -5,7 +5,7 @@ import depthai as dai
 
 
 class FaceData(dai.Buffer):
-    '''Message representing face attributes
+    """Message representing face attributes
 
     Attributes
     ----------
@@ -15,7 +15,8 @@ class FaceData(dai.Buffer):
     emotion : str
     embedding : np.ndarray
     crop : dai.ImgFrame
-    '''
+    """
+
     def __init__(
         self,
         bbox: Tuple[float, float, float, float],
@@ -23,7 +24,7 @@ class FaceData(dai.Buffer):
         gender: str,
         emotion: str,
         embedding: Optional[np.ndarray],
-        crop: dai.ImgFrame
+        crop: dai.ImgFrame,
     ):
         super().__init__()
         self.bbox = bbox
@@ -35,7 +36,7 @@ class FaceData(dai.Buffer):
 
 
 class PersonData(dai.Buffer):
-    '''Message representing person data
+    """Message representing person data
 
     Attributes
     ----------
@@ -45,7 +46,8 @@ class PersonData(dai.Buffer):
     reid_status: str; "TBD" | "NEW" | "REID" | None
     tracking_id : int
     tracking_status : str
-    '''
+    """
+
     def __init__(
         self,
         face: Optional[FaceData],
@@ -65,11 +67,12 @@ class PersonData(dai.Buffer):
 
 
 class PeopleMessage(dai.Buffer):
-    '''
+    """
     Attributes
     ----------
     people : List[PersonData]
-    '''
+    """
+
     def __init__(
         self,
         people: List[PersonData],
@@ -79,11 +82,12 @@ class PeopleMessage(dai.Buffer):
 
 
 class FaceFeaturesMessage(dai.Buffer):
-    '''
+    """
     Attributes
     ----------
     faces : List[FaceData]
-    '''
+    """
+
     def __init__(
         self,
         faces: List[FaceData],

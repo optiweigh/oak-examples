@@ -2,8 +2,14 @@ from collections import deque
 from typing import Deque, Dict
 
 EMOTION_KEYS = [
-    "Anger", "Contempt", "Disgust", "Fear",
-    "Happiness", "Neutral", "Sadness", "Surprise",
+    "Anger",
+    "Contempt",
+    "Disgust",
+    "Fear",
+    "Happiness",
+    "Neutral",
+    "Sadness",
+    "Surprise",
 ]
 
 
@@ -11,6 +17,7 @@ class StatsAggregator:
     """
     Manages statistics for Age, Gender, and Emotions.
     """
+
     def __init__(self, maxlen: int = 2000):
         self._ages: Deque[int] = deque(maxlen=maxlen)
         self._age_sum: int = 0
@@ -47,8 +54,13 @@ class StatsAggregator:
         return {
             "age": avg_age,
             "males": self._percentage(self._gender_counts["Male"], self._total_gender),
-            "females": self._percentage(self._gender_counts["Female"], self._total_gender),
-            "emotions": {k: self._percentage(v, self._total_emotions) for k, v in self._emotion_counts.items()}
+            "females": self._percentage(
+                self._gender_counts["Female"], self._total_gender
+            ),
+            "emotions": {
+                k: self._percentage(v, self._total_emotions)
+                for k, v in self._emotion_counts.items()
+            },
         }
 
     @staticmethod
@@ -60,5 +72,5 @@ class StatsAggregator:
             "age": 0.0,
             "males": 0.0,
             "females": 0.0,
-            "emotions": {k: 0.0 for k in EMOTION_KEYS}
+            "emotions": {k: 0.0 for k in EMOTION_KEYS},
         }

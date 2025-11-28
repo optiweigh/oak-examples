@@ -23,8 +23,8 @@ class FaceCropsStage:
         self,
         pipeline: dai.Pipeline,
         preview_source: dai.Node.Output,
-        detections_source: dai.Node.Output,                       # ImgDetections
-        face_reference_detections: dai.Node.Output,               # ImgDetectionsExtended
+        detections_source: dai.Node.Output,  # ImgDetections
+        face_reference_detections: dai.Node.Output,  # ImgDetectionsExtended
         camera_fps: int,
     ):
         self._pipeline = pipeline
@@ -51,7 +51,9 @@ class FaceCropsStage:
 
         return self
 
-    def _create_gather_data(self, img_source: dai.Node.Output, face_reference_detections: dai.Node.Output) -> GatherData:
+    def _create_gather_data(
+        self, img_source: dai.Node.Output, face_reference_detections: dai.Node.Output
+    ) -> GatherData:
         gather = self._pipeline.create(GatherData).build(camera_fps=self._camera_fps)
         img_source.link(gather.input_data)
         face_reference_detections.link(gather.input_reference)
@@ -66,7 +68,9 @@ class FaceCropsStage:
         (emotions, age/gender, reid).
         """
         if self._cropper is None:
-            raise RuntimeError("FaceCropsStage.build() must be called before accessing out.")
+            raise RuntimeError(
+                "FaceCropsStage.build() must be called before accessing out."
+            )
         return self._cropper.crops_out
 
     @property
@@ -75,5 +79,7 @@ class FaceCropsStage:
         GatherData: Crops aligned with face detections. Use this for fusion (PeopleFacesJoin).
         """
         if self._gather is None:
-            raise RuntimeError("FaceCropsStage.build() must be called before accessing synced_out.")
+            raise RuntimeError(
+                "FaceCropsStage.build() must be called before accessing synced_out."
+            )
         return self._gather.out

@@ -148,9 +148,11 @@ class MonitorFacesNode(dai.node.HostNode):
 
     def _pad_slots(self) -> None:
         if len(self.people_slots) < self.max_people_slots:
-            self.people_slots += [None] * (self.max_people_slots - len(self.people_slots))
+            self.people_slots += [None] * (
+                self.max_people_slots - len(self.people_slots)
+            )
         elif len(self.people_slots) > self.max_people_slots:
-            self.people_slots = self.people_slots[:self.max_people_slots]
+            self.people_slots = self.people_slots[: self.max_people_slots]
 
     def trim_people(self, n_keep: int) -> None:
         """
@@ -167,13 +169,22 @@ class MonitorFacesNode(dai.node.HostNode):
         keep_ids = set(recent_ids)
 
         self.people = {person_id: self.people[person_id] for person_id in keep_ids}
-        self.people_last_seen = {person_id: self.people_last_seen[person_id] for person_id in keep_ids}
+        self.people_last_seen = {
+            person_id: self.people_last_seen[person_id] for person_id in keep_ids
+        }
 
         # Drop cached images for evicted IDs
-        self._face_img_cache = {person_id: self._face_img_cache[person_id] for person_id in keep_ids if person_id in self._face_img_cache}
+        self._face_img_cache = {
+            person_id: self._face_img_cache[person_id]
+            for person_id in keep_ids
+            if person_id in self._face_img_cache
+        }
 
         # Clean up slots
-        self.people_slots = [person_id if person_id in keep_ids else None for person_id in self.people_slots]
+        self.people_slots = [
+            person_id if person_id in keep_ids else None
+            for person_id in self.people_slots
+        ]
         self._pad_slots()
 
     def encode_bgr_to_base64(self, bgr: np.ndarray) -> str:

@@ -45,8 +45,16 @@ class AnnotationNode(dai.node.HostNode):
             outline_color, fill_color = self._get_style(person)
             label = self._build_label(person, face)
 
-            ann.draw_rectangle((x1, y1), (x2, y2), outline_color=outline_color, fill_color=fill_color)
-            ann.draw_text(label, (x1 + 0.005, y2 - 0.025), size=18, color=TEXT_COLOR, background_color=TEXT_BG)
+            ann.draw_rectangle(
+                (x1, y1), (x2, y2), outline_color=outline_color, fill_color=fill_color
+            )
+            ann.draw_text(
+                label,
+                (x1 + 0.005, y2 - 0.025),
+                size=18,
+                color=TEXT_COLOR,
+                background_color=TEXT_BG,
+            )
 
         out = ann.build(timestamp=msg.getTimestamp(), sequence_num=msg.getSequenceNum())
         self.out.send(out)

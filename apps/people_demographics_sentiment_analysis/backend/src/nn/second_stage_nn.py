@@ -26,6 +26,7 @@ class SecondStageNN:
         The reference detections stream from the first-stage detector.
         GatherData uses this to align NN predictions to the correct detection.
     """
+
     def __init__(
         self,
         pipeline: dai.Pipeline,
@@ -51,7 +52,9 @@ class SecondStageNN:
 
     def build(self) -> "SecondStageNN":
         self._img_manip = self._create_image_manip()
-        self._nn = self._pipeline.create(ParsingNeuralNetwork).build(self._img_manip.out, self._archive)
+        self._nn = self._pipeline.create(ParsingNeuralNetwork).build(
+            self._img_manip.out, self._archive
+        )
         self._gather_data = self._create_gather_data()
 
         return self
@@ -66,7 +69,9 @@ class SecondStageNN:
         return img_manip
 
     def _create_gather_data(self) -> GatherData:
-        gather_data = self._pipeline.create(GatherData).build(camera_fps=self._camera_fps)
+        gather_data = self._pipeline.create(GatherData).build(
+            camera_fps=self._camera_fps
+        )
         if self._multi_head_nn:
             self._nn.outputs.link(gather_data.input_data)
         else:

@@ -2,7 +2,12 @@ from typing import List, Optional
 import depthai as dai
 import numpy as np
 
-from depthai_nodes import ImgDetectionsExtended, Classifications, Predictions, GatheredData
+from depthai_nodes import (
+    ImgDetectionsExtended,
+    Classifications,
+    Predictions,
+    GatheredData,
+)
 from messages.messages import FaceData
 
 
@@ -16,7 +21,9 @@ def merge_face_features(
     Matches age, gender, emotion, re-id attributes and face crops for each face detection.
     """
     reference = age_gender.reference_data
-    assert isinstance(reference, ImgDetectionsExtended), "Expected ImgDetectionsExtended"
+    assert isinstance(
+        reference, ImgDetectionsExtended
+    ), "Expected ImgDetectionsExtended"
 
     detections = list(reference.detections)
     age_gender_groups = age_gender.gathered
@@ -24,11 +31,15 @@ def merge_face_features(
     reid_groups = reid.gathered
     crop_frames = crops.gathered
 
-    assert all(isinstance(msg, dai.NNData) for msg in reid_groups), "Expected dai.NNData"
+    assert all(
+        isinstance(msg, dai.NNData) for msg in reid_groups
+    ), "Expected dai.NNData"
 
     faces: List[FaceData] = []
 
-    for detection, age_gender_msg, emotion_msg, crop_frame, reid_msg in zip(detections, age_gender_groups, emotion_groups, crop_frames, reid_groups):
+    for detection, age_gender_msg, emotion_msg, crop_frame, reid_msg in zip(
+        detections, age_gender_groups, emotion_groups, crop_frames, reid_groups
+    ):
         bbox = detection.rotated_rect.getOuterRect()
         age_msg: Predictions = age_gender_msg["0"]
         gender_msg: Classifications = age_gender_msg["1"]

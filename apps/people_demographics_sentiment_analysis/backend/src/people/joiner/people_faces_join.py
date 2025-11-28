@@ -5,7 +5,11 @@ from messages.messages import PersonData, PeopleMessage, FaceData
 from .associator import PersonFaceAssociator
 from .reid_manager import ReIdManager
 
-LIVE = (dai.Tracklet.TrackingStatus.TRACKED, dai.Tracklet.TrackingStatus.LOST, dai.Tracklet.TrackingStatus.NEW)
+LIVE = (
+    dai.Tracklet.TrackingStatus.TRACKED,
+    dai.Tracklet.TrackingStatus.LOST,
+    dai.Tracklet.TrackingStatus.NEW,
+)
 
 
 class PeopleJoinNode(dai.node.HostNode):
@@ -19,6 +23,7 @@ class PeopleJoinNode(dai.node.HostNode):
     Output:
       - out: PersonFaceMessage (people: List[PersonData])
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.in_faces = self.createInput()
@@ -27,14 +32,18 @@ class PeopleJoinNode(dai.node.HostNode):
         self._associator = PersonFaceAssociator()
         self._reid_manager = ReIdManager()
 
-    def build(self, faces: dai.Node.Output, tracklets: dai.Node.Output) -> "PeopleJoinNode":
+    def build(
+        self, faces: dai.Node.Output, tracklets: dai.Node.Output
+    ) -> "PeopleJoinNode":
         self.link_args(faces, tracklets)
         return self
 
     def process(self, faces_msg: dai.Buffer, tracklets_msg: dai.Tracklets) -> None:
         faces: List[FaceData] = faces_msg.faces
         tracklets_all = tracklets_msg.tracklets
-        tracklets_live = [tracklet for tracklet in tracklets_all if tracklet.status in LIVE]
+        tracklets_live = [
+            tracklet for tracklet in tracklets_all if tracklet.status in LIVE
+        ]
 
         active_ids = {tracklet.id for tracklet in tracklets_live}
         self._reid_manager.cleanup(active_ids)

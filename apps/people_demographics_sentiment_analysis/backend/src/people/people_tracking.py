@@ -29,7 +29,7 @@ class PeopleTrackingStage:
         self._model_h = archive.getInputHeight()
         self._det_conf_threshold = det_conf_threshold
 
-        self._labels_to_track = labels_to_track or [0]          # 0 for person
+        self._labels_to_track = labels_to_track or [0]  # 0 for person
         self._tracker_threshold = tracker_threshold
         self._tracklet_lifespan = tracklet_lifespan
         self._tracker_type = tracker_type
@@ -45,8 +45,7 @@ class PeopleTrackingStage:
         self._detector = self._create_detector()
 
         self._tracker = self._create_object_tracker(
-            detection_src=self._detector.out,
-            frame_src=self._detector.passthrough
+            detection_src=self._detector.out, frame_src=self._detector.passthrough
         )
 
         return self
@@ -68,7 +67,9 @@ class PeopleTrackingStage:
         detector.setConfidenceThreshold(self._det_conf_threshold)
         return detector
 
-    def _create_object_tracker(self, detection_src: dai.Node.Output, frame_src: dai.Node.Output) -> dai.node.ObjectTracker:
+    def _create_object_tracker(
+        self, detection_src: dai.Node.Output, frame_src: dai.Node.Output
+    ) -> dai.node.ObjectTracker:
         tracker = self._pipeline.create(dai.node.ObjectTracker)
         tracker.setDetectionLabelsToTrack(self._labels_to_track)
         tracker.setTrackerThreshold(self._tracker_threshold)
@@ -87,5 +88,7 @@ class PeopleTrackingStage:
     def out(self) -> dai.Node.Output:
         """Tracklets stream"""
         if self._tracker is None:
-            raise RuntimeError("PeopleTrackingStage.build() must be called before accessing tracker output.")
+            raise RuntimeError(
+                "PeopleTrackingStage.build() must be called before accessing tracker output."
+            )
         return self._tracker.out

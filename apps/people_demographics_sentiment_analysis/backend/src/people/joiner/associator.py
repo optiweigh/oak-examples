@@ -21,7 +21,9 @@ class PersonFaceAssociator:
     def __init__(self, min_overlap_ratio: float = 0.6):
         self._min_overlap_ratio = min_overlap_ratio
 
-    def match(self, faces: List[FaceData], tracklets: List[dai.Tracklet]) -> List[PersonCandidate]:
+    def match(
+        self, faces: List[FaceData], tracklets: List[dai.Tracklet]
+    ) -> List[PersonCandidate]:
         candidates: List[PersonCandidate] = []
 
         for tracklet in tracklets:
@@ -42,7 +44,9 @@ class PersonFaceAssociator:
 
         return candidates
 
-    def _best_person_for_face(self, face_box: Tuple[float, float, float, float], people: List[dai.Tracklet]) -> Tuple[Optional[int], float]:
+    def _best_person_for_face(
+        self, face_box: Tuple[float, float, float, float], people: List[dai.Tracklet]
+    ) -> Tuple[Optional[int], float]:
         best_idx, best_overlap = None, 0.0
         for i, tracklet in enumerate(people):
             person_box = self._tracklet_to_bbox(tracklet)
@@ -57,7 +61,12 @@ class PersonFaceAssociator:
     @staticmethod
     def _tracklet_to_bbox(tracklet: dai.Tracklet) -> Tuple[float, float, float, float]:
         roi = tracklet.roi
-        return (roi.topLeft().x, roi.topLeft().y, roi.bottomRight().x, roi.bottomRight().y)
+        return (
+            roi.topLeft().x,
+            roi.topLeft().y,
+            roi.bottomRight().x,
+            roi.bottomRight().y,
+        )
 
     @staticmethod
     def bbox_area(box: Tuple):

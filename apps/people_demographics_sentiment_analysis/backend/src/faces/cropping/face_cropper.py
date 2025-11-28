@@ -31,7 +31,7 @@ class FaceCropper:
         self._script: Optional[dai.node.Script] = None
         self._img_manip: Optional[dai.node.ImageManip] = None
 
-    def build(self) -> 'FaceCropper':
+    def build(self) -> "FaceCropper":
         self._script = self._pipeline.create(dai.node.Script)
 
         script_code = generate_script_content(
