@@ -76,6 +76,18 @@ KNOWN_FAILING = {
         "mode": "all",
         "platform": "all",
     },
+    "apps/focused-vision": {
+        "reason": "RVC4 only app",
+        "platform": ["rvc2"],
+    },
+    "tutorials/qr-with-tiling": {
+        "reason": "Missing bindings for RVC2 in Script node.",
+        "platform": ["rvc2"],
+    },
+    "apps/people_demographics_sentiment_analysis": {
+        "reason": "RVC4 only app",
+        "platform": ["rvc2"],
+    },
 }
 
 IGNORED_WARNINGS = [
