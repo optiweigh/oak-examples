@@ -12,7 +12,6 @@ from depthai_nodes.node.stage_2_neural_network import Stage2NeuralNetwork
 logger = logging.getLogger(__name__)
 
 _, args = initialize_argparser()
-args.device = "1631075878"
 
 logger.error("Starting")
 frame_type = dai.ImgFrame.Type.BGR888i
