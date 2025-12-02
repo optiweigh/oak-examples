@@ -1,5 +1,6 @@
 # ROS driver custom workspace example
 
+![Image](./media/ros_main.png)
 This is an example of an app that allows creating custom workspaces that contain your nodes which can be serve as entrypoint to your whole ROS2 project.
 You can use that as a template for developing your custom ROS2 codebase, just use `src` directory the same way you would do that in your ROS2 workspace.
 When running the app, the build process downloads dependencies and performs colcon build on the workspace. You can refer to `oakapp.toml` file on individual build steps.
