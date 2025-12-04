@@ -15,6 +15,7 @@ class SecondStageNNNode(dai.node.ThreadedHostNode):
     Exposes:
       - synced_out: NN outputs aligned with reference detections (for PeopleJoinNode)
     """
+
     def __init__(self, multi_head_nn: bool = False) -> None:
         """
         @param multi_head_nn: Set True if the model outputs multiple layers (e.g., Age+Gender),

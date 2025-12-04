@@ -19,14 +19,22 @@ class FaceDetectionNode(dai.node.ThreadedHostNode):
 
         self._img_manip: dai.node.ImageManip = self.createSubnode(dai.node.ImageManip)
         self._nn: ParsingNeuralNetwork = self.createSubnode(ParsingNeuralNetwork)
-        self._filtered_face_det: FilterNLargestBBoxes = self.createSubnode(FilterNLargestBBoxes)
-        self._filtered_face_det_bridge: ImgDetectionsBridge = self.createSubnode(ImgDetectionsBridge)
+        self._filtered_face_det: FilterNLargestBBoxes = self.createSubnode(
+            FilterNLargestBBoxes
+        )
+        self._filtered_face_det_bridge: ImgDetectionsBridge = self.createSubnode(
+            ImgDetectionsBridge
+        )
 
         self.inputImage: dai.Node.Input = self._img_manip.inputImage
         self.filtered_output: dai.Node.Output = self._filtered_face_det.out
-        self.filtered_bridge_output: dai.Node.Output = self._filtered_face_det_bridge.out
+        self.filtered_bridge_output: dai.Node.Output = (
+            self._filtered_face_det_bridge.out
+        )
 
-    def build(self, image_source: dai.Node.Output, archive: dai.NNArchive) -> "FaceDetectionNode":
+    def build(
+        self, image_source: dai.Node.Output, archive: dai.NNArchive
+    ) -> "FaceDetectionNode":
         model_w = archive.getInputWidth()
         model_h = archive.getInputHeight()
 

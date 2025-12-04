@@ -30,7 +30,7 @@ class CameraSourceNode(dai.node.ThreadedHostNode):
         """
         @param cfg: Video configuration (resolution, fps, frame type, etc.).
         """
-        self._camera.build()        # Camera must be built before requesting outputs
+        self._camera.build()  # Camera must be built before requesting outputs
 
         self.preview = self._camera.requestOutput(
             size=(cfg.width, cfg.height),

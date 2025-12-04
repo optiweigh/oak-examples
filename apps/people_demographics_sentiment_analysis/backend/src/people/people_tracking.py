@@ -43,8 +43,12 @@ class PeopleTrackingNode(dai.node.ThreadedHostNode):
         self._id_assignment = id_assignment
 
         self._img_manip: dai.node.ImageManip = self.createSubnode(dai.node.ImageManip)
-        self._detector: dai.node.DetectionNetwork = self.createSubnode(dai.node.DetectionNetwork)
-        self._tracker: dai.node.ObjectTracker = self.createSubnode(dai.node.ObjectTracker)
+        self._detector: dai.node.DetectionNetwork = self.createSubnode(
+            dai.node.DetectionNetwork
+        )
+        self._tracker: dai.node.ObjectTracker = self.createSubnode(
+            dai.node.ObjectTracker
+        )
 
         self.out: dai.Node.Output = self._tracker.out
 
