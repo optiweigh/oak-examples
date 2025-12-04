@@ -27,7 +27,12 @@ const LeftVideo: React.FC = React.memo(() => {
       <TopBar /> 
       <StatsBanner stats={stats} />
       <div className={css({ position: "relative", flex: 1, minHeight: 0 })}>
-        <Streams allowedTopics={leftAllowed} defaultTopics={leftAllowed} topicGroups={leftGroups} />
+        <Streams
+          allowedTopics={leftAllowed}
+          defaultTopics={leftAllowed}
+          topicGroups={leftGroups}
+          hideToolbar  
+        />      
       </div>
     </div>
   );

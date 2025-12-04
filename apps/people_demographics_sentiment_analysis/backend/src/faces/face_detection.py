@@ -4,76 +4,49 @@ from depthai_nodes.node import ParsingNeuralNetwork, ImgDetectionsBridge
 from .filter_n_largest_bboxes import FilterNLargestBBoxes
 
 
-class FaceDetectionStage:
+class FaceDetectionNode(dai.node.ThreadedHostNode):
     """
-    Builds the face detection pipeline segment:
-      ImageManip -> ParsingNeuralNetwork -> (filter top N faces) -> ImgDetectionsBridge
+    High-level node grouping the face detection pipeline block:
+        ImageManip -> ParsingNeuralNetwork -> FilterNLargestBBoxes -> ImgDetectionsBridge
+
+    Acts as a structural container (NodeGroup); it only creates and wires subnodes and
+    does not process messages at runtime.
     """
 
-    def __init__(
-        self,
-        pipeline: dai.Pipeline,
-        image_source: dai.Node.Output,
-        archive: dai.NNArchive,
-        max_faces: int = 3,
-    ):
-        self._pipeline = pipeline
-        self._image_source = image_source
-        self._archive = archive
+    def __init__(self, max_faces: int = 3) -> None:
+        super().__init__()
         self._max_faces = max_faces
 
-        self._model_w = archive.getInputWidth()
-        self._model_h = archive.getInputHeight()
+        self._img_manip: dai.node.ImageManip = self.createSubnode(dai.node.ImageManip)
+        self._nn: ParsingNeuralNetwork = self.createSubnode(ParsingNeuralNetwork)
+        self._filtered_face_det: FilterNLargestBBoxes = self.createSubnode(FilterNLargestBBoxes)
+        self._filtered_face_det_bridge: ImgDetectionsBridge = self.createSubnode(ImgDetectionsBridge)
 
-        self._nn: ParsingNeuralNetwork = None
-        self._filtered_face_det: FilterNLargestBBoxes = None
-        self._filtered_face_det_bridge: ImgDetectionsBridge = None
+        self.inputImage: dai.Node.Input = self._img_manip.inputImage
+        self.filtered_output: dai.Node.Output = self._filtered_face_det.out
+        self.filtered_bridge_output: dai.Node.Output = self._filtered_face_det_bridge.out
 
-    def build(self) -> "FaceDetectionStage":
-        img_manip_face = self._create_image_manip()
+    def build(self, image_source: dai.Node.Output, archive: dai.NNArchive) -> "FaceDetectionNode":
+        model_w = archive.getInputWidth()
+        model_h = archive.getInputHeight()
 
-        self._nn = self._pipeline.create(ParsingNeuralNetwork).build(
-            img_manip_face.out, self._archive
-        )
+        self._img_manip.initialConfig.setOutputSize(model_w, model_h)
+        self._img_manip.initialConfig.setReusePreviousImage(False)
+        self._img_manip.inputImage.setBlocking(True)
+        image_source.link(self.inputImage)
+
+        self._nn.build(self._img_manip.out, archive)
         self._nn.getParser().setConfidenceThreshold(0.85)
         self._nn.getParser().setIOUThreshold(0.75)
 
-        self._filtered_face_det = self._pipeline.create(FilterNLargestBBoxes).build(
-            face_detections=self.nn.out,
+        self._filtered_face_det.build(
+            face_detections=self._nn.out,
             n_face_crops=self._max_faces,
         )
-        self._filtered_face_det_bridge = self._pipeline.create(
-            ImgDetectionsBridge
-        ).build(self._filtered_face_det.out)
+        self._filtered_face_det_bridge.build(self._filtered_face_det.out)
 
         return self
 
-    def _create_image_manip(self) -> dai.node.ImageManip:
-        img_manip_face = self._pipeline.create(dai.node.ImageManip)
-        img_manip_face.initialConfig.setOutputSize(self._model_w, self._model_h)
-        img_manip_face.initialConfig.setReusePreviousImage(False)
-        img_manip_face.inputImage.setBlocking(True)
-        self._image_source.link(img_manip_face.inputImage)
-        return img_manip_face
-
-    @property
-    def nn(self) -> ParsingNeuralNetwork:
-        if self._nn is None:
-            raise RuntimeError("FaceNN.build() must be called before accessing nn.")
-        return self._nn
-
-    @property
-    def filtered_output(self) -> dai.Node.Output:
-        if self._filtered_face_det is None:
-            raise RuntimeError(
-                "FaceNN.build() must be called before accessing filtered_output."
-            )
-        return self._filtered_face_det.out
-
-    @property
-    def filtered_bridge_output(self) -> dai.Node.Output:
-        if self._filtered_face_det_bridge is None:
-            raise RuntimeError(
-                "FaceNN.build() must be called before accessing filtered_bridge_output."
-            )
-        return self._filtered_face_det_bridge.out
+    def run(self):
+        # High-level node: no host-side processing, subnodes run on device.
+        pass

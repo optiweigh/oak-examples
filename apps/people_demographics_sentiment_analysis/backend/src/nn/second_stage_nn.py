@@ -1,86 +1,67 @@
-from typing import Optional
 import depthai as dai
 
 from depthai_nodes.node import ParsingNeuralNetwork, GatherData
 
 
-class SecondStageNN:
+class SecondStageNNNode(dai.node.ThreadedHostNode):
     """
-    Builds a second-stage neural network block that takes image crops and produces NN outputs aligned with reference detections.
+    High-level node for a second-stage neural network block.
 
     Receives detection crops from the first stage and runs them through:
         -> ImageManip (resize to NN input resolution);
         -> ParsingNeuralNetwork (run the model);
         -> GatherData (synchronize NN outputs with the correct reference detections).
 
-    Parameters
-    ----------
-    pipeline : dai.Pipeline
-    img_source : dai.Node.Output
-        Face crops from FaceCropsStage.
-    archive : dai.NNArchive
-    multi_head_nn : bool
-        Whether the NN has multiple output heads or a single default output.
-    camera_fps : int
-    reference_detections : dai.Node.Output
-        The reference detections stream from the first-stage detector.
-        GatherData uses this to align NN predictions to the correct detection.
+    Exposes:
+      - synced_out: NN outputs aligned with reference detections (for PeopleJoinNode)
     """
+    def __init__(self, multi_head_nn: bool = False) -> None:
+        """
+        @param multi_head_nn: Set True if the model outputs multiple layers (e.g., Age+Gender),
+                              False for single output (e.g., Emotion, ReID).
+        """
+        super().__init__()
 
-    def __init__(
-        self,
-        pipeline: dai.Pipeline,
-        img_source: dai.Node.Output,
-        archive: dai.NNArchive,
-        multi_head_nn: bool,
-        camera_fps: int,
-        reference_detections: dai.Node.Output,
-    ):
-        self._pipeline = pipeline
-        self._img_source = img_source
-        self._archive = archive
-        self._camera_fps = camera_fps
-        self._reference_detections = reference_detections
         self._multi_head_nn = multi_head_nn
 
-        self._model_w = archive.getInputWidth()
-        self._model_h = archive.getInputHeight()
+        self._img_manip: dai.node.ImageManip = self.createSubnode(dai.node.ImageManip)
+        self._nn: ParsingNeuralNetwork = self.createSubnode(ParsingNeuralNetwork)
+        self._gather: GatherData = self.createSubnode(GatherData)
 
-        self._img_manip: Optional[dai.node.ImageManip] = None
-        self._nn: Optional[ParsingNeuralNetwork] = None
-        self._gather_data: Optional[GatherData] = None
+        self.synced_out: dai.Node.Output = self._gather.out
 
-    def build(self) -> "SecondStageNN":
-        self._img_manip = self._create_image_manip()
-        self._nn = self._pipeline.create(ParsingNeuralNetwork).build(
-            self._img_manip.out, self._archive
+    def build(
+        self,
+        image_source: dai.Node.Output,
+        archive: dai.NNArchive,
+        reference_detections: dai.Node.Output,
+        camera_fps: int,
+    ) -> "SecondStageNNNode":
+        """
+        @param image_source: Source RGB frames.
+        @param archive: NN archive providing the model and input resolution.
+        @param reference_detections: Detections from the first-stage NN model, used by GatherData to sync
+                                     NN outputs to the correct detections.
+        @param camera_fps: Camera FPS.
+        """
+        model_w = archive.getInputWidth()
+        model_h = archive.getInputHeight()
+
+        self._img_manip.initialConfig.setOutputSize(model_w, model_h)
+        self._img_manip.inputImage.setBlocking(True)
+        self._img_manip.setMaxOutputFrameSize(model_w * model_h * 3)
+        image_source.link(self._img_manip.inputImage)
+
+        self._nn.build(self._img_manip.out, archive)
+
+        self._gather.build(
+            camera_fps=camera_fps,
+            input_data=self._nn.outputs if self._multi_head_nn else self._nn.out,
+            input_reference=reference_detections,
         )
-        self._gather_data = self._create_gather_data()
 
         return self
 
-    def _create_image_manip(self) -> dai.node.ImageManip:
-        img_manip = self._pipeline.create(dai.node.ImageManip)
-        img_manip.initialConfig.setOutputSize(self._model_w, self._model_h)
-        img_manip.inputImage.setBlocking(True)
-        img_manip.setMaxOutputFrameSize(self._model_w * self._model_h * 3)
-        self._img_source.link(img_manip.inputImage)
-
-        return img_manip
-
-    def _create_gather_data(self) -> GatherData:
-        gather_data = self._pipeline.create(GatherData).build(
-            camera_fps=self._camera_fps
-        )
-        if self._multi_head_nn:
-            self._nn.outputs.link(gather_data.input_data)
-        else:
-            self._nn.out.link(gather_data.input_data)
-        self._reference_detections.link(gather_data.input_reference)
-
-        return gather_data
-
-    @property
-    def synced_out(self) -> dai.Node.Output:
-        """NN output aligned to reference face detections."""
-        return self._gather_data.out
+    def run(self) -> None:
+        # High-level node: no host-side processing, subnodes do all the work.
+        pass

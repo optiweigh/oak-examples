@@ -7,6 +7,7 @@ def initialize_argparser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
+    # Useful ONLY for running in Peripheral mode
     parser.add_argument(
         "-d",
         "--device",
