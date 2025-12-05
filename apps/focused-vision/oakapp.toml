@@ -1,4 +1,4 @@
-identifier = "com.luxonis.focused-vision"
+identifier = "com.example.apps.focused-vision"
 entrypoint = ["bash", "-c", "/usr/bin/runsvdir -P /etc/service"]
 app_version = "0.9.2"
 
