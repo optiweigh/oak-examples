@@ -3,6 +3,10 @@ KNOWN_FAILING = {
         "reason": "RVC4 only app",
         "rules": {"and": [{"platform": ["rvc2"]}]},
     },
+    "apps/p2p-measurement": {
+        "reason": "RVC4 only app",
+        "rules": {"and": [{"platform": ["rvc2"]}]},
+    },
     "apps/ros/ros-driver-basic": {
         "reason": "Needs ros base image",
         "rules": {"and": [{"mode": ["peripheral"]}]},

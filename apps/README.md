@@ -13,5 +13,6 @@ This section contains ready-to-use applications that demonstrate the capabilitie
 | [ros-driver-custom-workspace](ros/ros-driver-custom-workspace/)  | ❌   | ❌                | ✅                |           | Demo showcasing creation of a custom workspace that is built and run on the device itself.                                                 |
 | [ros-driver-rgb-pcl](ros/ros-driver-rgb-pcl/)                    | ❌   | ❌                | ✅                |           | Demo showcasing how to publish RGB pointcloud using ROS driver on the device.                                                              |
 | [ros-driver-spatial-bb](ros/ros-driver-spatial-bb/)              | ❌   | ❌                | ✅                |           | Demo showcasing how to publish RGB pointcloud and bounding boxes from detections in 3D space using ROS driver.                             |
+| [p2p-measurement](p2p-measurement)                               | ❌   | ✅                | ✅                |           | Real-time 3D distance measurement between two points using DepthAI                                                                         |
 
 ✅: available; ❌: not available; 🚧: work in progress
