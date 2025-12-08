@@ -3,6 +3,10 @@ KNOWN_FAILING = {
         "reason": "RVC4 only app",
         "rules": {"and": [{"platform": ["rvc2"]}]},
     },
+    "apps/people_demographics_sentiment_analysis": {
+        "reason": "RVC4 only app",
+        "rules": {"and": [{"platform": ["rvc2"]}]},
+    },
     "apps/ros/ros-driver-basic": {
         "reason": "Needs ros base image",
         "rules": {"and": [{"mode": ["peripheral"]}]},
@@ -112,10 +116,6 @@ KNOWN_FAILING = {
         "reason": "Needs backend connection sometimes, flaky to test.",
         "rules": {"and": [{"platform": "all"}]},
     },
-    "apps/focused-vision": {
-        "reason": "RVC4 only app",
-        "platform": ["rvc2"],
-    },
     "tutorials/qr-with-tiling": {
         "reason": "Missing bindings for RVC2 in Script node. Missing `libzbar-64.dll` module on Windows and MacOS",
         "rules": {"or": [{"platform": ["rvc2"]}, {"os": ["win", "mac"]}]},
@@ -123,10 +123,6 @@ KNOWN_FAILING = {
     "tutorials/play-encoded-stream": {
         "reason": "Missing bindings for RVC2 in Script node. Cannot open include file for Windows",
         "rules": {"or": [{"platform": ["rvc2"]}, {"os": ["win"]}]},
-    },
-    "apps/people_demographics_sentiment_analysis": {
-        "reason": "RVC4 only app",
-        "platform": ["rvc2"],
     },
 }
 
