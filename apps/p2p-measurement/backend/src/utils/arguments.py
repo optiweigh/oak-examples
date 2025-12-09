@@ -25,30 +25,6 @@ def initialize_argparser():
         type=int,
     )
 
-    parser.add_argument(
-        "-ip",
-        "--ip",
-        help="IP address to serve the frontend on.",
-        required=False,
-        type=str,
-    )
-    parser.add_argument(
-        "-p",
-        "--port",
-        help="Port to serve the frontend on.",
-        required=False,
-        type=int,
-    )
-    parser.add_argument(
-        "-n",
-        "--model_name",
-        help="Name of the model to use: yolo-world or yoloe",
-        required=False,
-        default="yolo-world",
-        type=str,
-        choices=["yolo-world", "yoloe"],
-    )
-
     args = parser.parse_args()
 
     return parser, args
