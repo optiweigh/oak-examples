@@ -1,0 +1,4 @@
+depthai==3.2.1
+git+https://github.com/luxonis/depthai-nodes.git@e3d31caf62d95671addac631534b89ed80f98035
+numpy==2.2.6
+opencv-python-headless==4.10.0.84
