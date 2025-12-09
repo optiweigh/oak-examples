@@ -1,5 +1,0 @@
-depthai==3.0.0
-#depthai-nodes==0.3.4
-depthai-nodes @ git+https://github.com/luxonis/depthai-nodes.git@feat/gatherdata_linking
-numpy==2.2.6
-opencv-python-headless==4.10.0.84
