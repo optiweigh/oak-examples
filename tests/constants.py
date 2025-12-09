@@ -3,6 +3,15 @@ KNOWN_FAILING = {
         "reason": "RVC4 only app",
         "rules": {"and": [{"platform": ["rvc2"]}]},
     },
+    "apps/people-demographics-and-sentiment-analysis": {
+        "reason": "Not supported for peripheral; RVC4 only app",
+        "rules": {
+            "and": [
+                {"mode": ["peripheral"]},
+                {"platform": ["rvc2"]},
+            ],
+        },
+    },
     "apps/ros/ros-driver-basic": {
         "reason": "Needs ros base image",
         "rules": {"and": [{"mode": ["peripheral"]}]},
@@ -121,7 +130,6 @@ KNOWN_FAILING = {
         "rules": {"or": [{"platform": ["rvc2"]}, {"os": ["win"]}]},
     },
 }
-
 
 IGNORED_WARNINGS = [
     "The issued warnings are orientative, based on optimal settings for a single network, if multiple networks are running in parallel the optimal settings may vary",
