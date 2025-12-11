@@ -1,6 +1,6 @@
 // ClickCatcher.tsx
 import { useEffect } from "react";
-import { useConnection } from "@luxonis/depthai-viewer-common";
+import { useDaiConnection } from "@luxonis/depthai-viewer-common";
 
 const clamp = (v:number)=>Math.max(0, Math.min(1, v));
 
@@ -21,7 +21,7 @@ export function ClickCatcher({
   debug?: boolean;
   onPointAdded?: (pointCount: number) => void;
 }) {
-  const { daiConnection } = useConnection();
+  const { daiConnection } = useDaiConnection();
 
   useEffect(() => {
     const host = containerRef.current;

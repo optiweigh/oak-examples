@@ -395,15 +395,6 @@ class PointTracker(dai.node.HostNode):
                 thickness=2,
             )
 
-            # Draw point label
-            # helper.draw_text(
-            #     text=f"P{i+1}",
-            #     position=(norm_x + 0.02, norm_y - 0.02),
-            #     color=(1, 1, 1, 1),  # White text
-            #     background_color=(0, 0, 0, 0.8),  # Semi-transparent black background
-            #     size=20
-            # )
-
         if len(self.points) == 2:
             p1_coords = self.points[0].get("pixel_coords", (0, 0))
             p2_coords = self.points[1].get("pixel_coords", (0, 0))
@@ -421,25 +412,6 @@ class PointTracker(dai.node.HostNode):
             helper.draw_line(
                 pt1=norm_p1, pt2=norm_p2, color=DISTANCE_LINE_COLOR, thickness=3
             )
-
-            # if self.distance_calculator:
-            #     distance, std_dev = self.distance_calculator.calculate_distance(self.points, depth_frame)
-
-            #     if distance > 0:
-            #         midpoint = ((norm_p1[0] + norm_p2[0]) / 2, (norm_p1[1] + norm_p2[1]) / 2)
-
-            #         if std_dev > 0 and self.distance_calculator.show_confidence_interval:
-            #             distance_text = f"{distance:.3f}±{std_dev:.3f}m"
-            #         else:
-            #             distance_text = f"{distance:.3f}m"
-
-            #         helper.draw_text(
-            #             text=distance_text,
-            #             position=midpoint,
-            #             color=DISTANCE_TEXT_COLOR,
-            #             background_color=DISTANCE_TEXT_BG_COLOR,
-            #             size=24
-            #         )
 
         return helper.build(rgb_msg.getTimestamp(), rgb_msg.getSequenceNum())
 

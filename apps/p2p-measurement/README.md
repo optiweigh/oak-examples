@@ -7,6 +7,8 @@ The frontend, built using the @luxonis/depthai-viewer-common package, provides r
 
 > **Note:** This example works only on RVC4 in standalone mode.
 
+## Demo
+
 ![](media/demo.gif)
 
 ## Features
@@ -18,81 +20,30 @@ The frontend, built using the @luxonis/depthai-viewer-common package, provides r
 - **Tracking Modes:** Toggle between active tracking and static point display
 - **Standard Deviation:** Display measurement uncertainty when available
 
-## Prerequisites
+## Usage
 
-- **Luxonis device** connected to your computer
-- Refer to the [documentation](https://docs.luxonis.com/software-v3/) to setup your device
+Running this example requires a **Luxonis device** connected to your computer. Refer to the [documentation](https://docs.luxonis.com/software-v3/) to setup your device if you haven't done it already.
 
-### Standalone Mode (RVC4 only)
+## Standalone Mode (RVC4 only)
 
-For production deployment on RVC4 devices, the app runs entirely on the device:
+Running the example in the standalone mode, app runs entirely on the device.
+To run the example in this mode, first install the `oakctl` tool using the installation instructions [here](https://docs.luxonis.com/software-v3/oak-apps/oakctl).
 
-1. **Install oakctl:**
+The app can then be run with:
 
-   ```bash
-   # Follow installation instructions at:
-   # https://docs.luxonis.com/software-v3/oak-apps/oakctl
-   ```
-
-2. **Build and Deploy:**
-
-   ```bash
-   # Deploy to device
-   oakctl connect <DEVICE_IP>
-   oakctl app run .
-   ```
-
-3. **Access the app:**
-
-   - Open `https://<OAK4_IP>:9000/` in your browser
-   - The exact URL will be shown in the terminal output
-
-## Peripheral mode
-
-1. **Install Backend Dependencies:**
-
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-2. **Install and Build Frontend:**
-
-   ```bash
-   cd frontend
-   npm install
-   npm run build
-   cd ..
-   ```
-
-3. **Start Backend:**
-
-   ```bash
-   cd backend
-   python src/main.py
-   ```
-
-4. **Start Frontend Preview:**
-
-   ```bash
-   cd frontend
-   npm run preview
-   ```
-
-5. **Open the application:**
-
-   - Frontend: `http://localhost:4173` (or the port shown in terminal)
-
-### Backend Parameters
-
+```bash
+oakctl connect <DEVICE_IP>
+oakctl app run .
 ```
--d DEVICE, --device DEVICE
-    Optional name, DeviceID or IP of the camera to connect to. (default: None)
--fps FPS_LIMIT, --fps-limit FPS_LIMIT
-    FPS limit. (default: None)
--ip IP, --ip IP       IP address to serve the frontend on. (default: None)
--p PORT, --port PORT  Port to serve the frontend on. (default: None)
-```
+
+Once the app is built and running you can access the DepthAI Viewer locally by opening `https://<OAK4_IP>:9000/` in your browser (the exact URL will be shown in the terminal output).
+
+This will run the example with default argument values. If you want to change these values you need to edit the `oakapp.toml` file (refer [here](https://docs.luxonis.com/software-v3/oak-apps/configuration/) for more information about this configuration file).
+
+### Remote access
+
+1. You can upload oakapp to Luxonis Hub via oakctl
+2. And then you can just remotly open App UI via App detail
 
 ### How to Use
 

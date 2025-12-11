@@ -1,11 +1,11 @@
 import { css } from "../styled-system/css/css.mjs";
-import { Streams, useConnection } from "@luxonis/depthai-viewer-common";
+import { Streams, useDaiConnection } from "@luxonis/depthai-viewer-common";
 import { ClickCatcher } from "./ClickOverlay.tsx";
 import { useRef, useState, useEffect } from "react";
 import { DistanceDisplay } from "./DistanceDisplay.tsx";
 
 function App() {
-    const connection = useConnection();
+    const connection = useDaiConnection();
     const viewerRef = useRef<HTMLDivElement>(null);
     const [pointCount, setPointCount] = useState(0);
     const [currentDistance, setCurrentDistance] = useState<number | null>(null);
