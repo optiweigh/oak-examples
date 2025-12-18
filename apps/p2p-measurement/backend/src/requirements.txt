@@ -1,4 +1,5 @@
 depthai==3.2.1
-depthai-nodes==0.3.7
+#depthai-nodes==0.3.7
+depthai-nodes @ git+https://github.com/luxonis/depthai-nodes.git@feat/apply_colormap_depth
 opencv-contrib-python==4.12.0.88
 numpy>=1.22

@@ -60,7 +60,7 @@ with dai.Pipeline(device) as pipeline:
 
     coloredDepth = pipeline.create(ApplyColormap).build(align.outputAligned)
     coloredDepth.setColormap(cv2.COLORMAP_JET)
-    # coloredDepth.setMaxValue(47000)
+    coloredDepth.setDepthPreset()
 
     point_tracker = pipeline.create(
         PointTracker, frame_width=FRAME_WIDTH, frame_height=FRAME_HEIGHT
