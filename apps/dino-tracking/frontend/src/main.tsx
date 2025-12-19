@@ -7,7 +7,7 @@ import '@luxonis/depthai-pipeline-lib/styles';
 import App from './App.tsx';
 import {BrowserRouter, Route, Routes} from "react-router";
 import {DepthAIContext} from "@luxonis/depthai-viewer-common";
-import { Toaster } from '@luxonis/common-fe-components';
+import { NotificationProvider } from './Notifications.tsx';
 
 // This function extracts the base path with app version from the current URL.
 // This is essential for access via domain luxonis.app
@@ -16,21 +16,18 @@ function getBasePath(): string {
 }
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <BrowserRouter basename={getBasePath()}>
-      <DepthAIContext
-        activeServices={
-          // @ts-ignore - We're using an example service here which isn't part of the DAI services enum
-          ['Custom Service']
-        }
-        messageHandlerVersion={'v2'}
-      >
-        <Routes>
-          <Route path="/" element={<App/>}/>
-        </Routes>
-      </DepthAIContext>
-    </BrowserRouter>
-
-    <Toaster />
-  </StrictMode>,
+    <StrictMode>
+            <BrowserRouter basename={getBasePath()}>
+                <DepthAIContext activeServices={
+                    // @ts-ignore - We're using an example service here which isn't part of the DAI services enum
+                    ['Custom Service']
+                }>
+                    <NotificationProvider>
+                        <Routes>
+                            <Route path="/" element={<App/>}/>
+                        </Routes>
+                    </NotificationProvider>
+                </DepthAIContext>
+            </BrowserRouter>
+    </StrictMode>,
 );
