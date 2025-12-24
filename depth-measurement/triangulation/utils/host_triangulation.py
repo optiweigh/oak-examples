@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
 import depthai as dai
+from typing import Tuple
 from depthai_nodes import (
     ImgDetectionsExtended,
 )
-from typing import Tuple
-from .annotation_helper import AnnotationHelper
+from depthai_nodes.utils import AnnotationHelper
+
 from .stereo_inference import StereoInference
 
 
@@ -232,6 +233,6 @@ class Triangulation(dai.node.HostNode):
         self, msg: dai.ImgFrame, frame: np.ndarray
     ) -> dai.ImgFrame:
         output_frame = dai.ImgFrame()
-        output_frame.setCvFrame(frame, dai.ImgFrame.Type.BGR888i)
+        output_frame.setCvFrame(frame, dai.ImgFrame.Type.NV12)
         output_frame.setTimestamp(msg.getTimestamp())
         return output_frame

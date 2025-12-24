@@ -1,6 +1,6 @@
 # OAK Examples
 
-> ⚠️ **Looking for the old DAIv2 examples?**\
+> ⚠️ **Looking for the old DepthAIv2 examples?**\
 > Check out the [`master` branch](https://github.com/luxonis/oak-examples/tree/master) for legacy content and examples built with the previous DepthAIv2 version.
 
 [![Forum](https://img.shields.io/badge/Forum-discuss-orange)](https://discuss.luxonis.com/)
@@ -9,6 +9,16 @@
 The repository contains various demonstrations, tutorials, and examples showcasing different capabilities of DepthAI and OAK devices. Each category focuses on specific aspects of the technology.
 
 Click on any category below to explore detailed examples for that specific domain.
+
+## Getting the examples
+
+To clone the repository, use the following:
+
+```
+git clone --depth 1 --branch main https://github.com/luxonis/oak-examples.git
+```
+
+Afterwards, navigate to desired application as listed below
 
 ## Categories
 
@@ -23,6 +33,21 @@ Click on any category below to explore detailed examples for that specific domai
       Ready-to-use applications built with DepthAI, demonstrating real-world use cases and implementations. Here are also demos that we present at different conferences showing advanced use cases.
       <br><br>
       <a href="apps/">📱 Explore Apps</a>
+    </td>
+  </tr>
+</table>
+
+### [🏎️ C++ Examples](cpp/)
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="cpp/camera_stream/media/camera_stream.gif" alt="C++ Camera Stream Demo">
+    </td>
+    <td width="50%" valign="middle" align="center">
+      Explore DepthAIv3 examples implemented in C++, including host builds and OAK app deployment guides. Start with the camera_stream sample to learn how to stream frames from a native depthai-core application.
+      <br><br>
+      <a href="cpp/">🏎️ Explore C++ Examples</a>
     </td>
   </tr>
 </table>
@@ -62,7 +87,7 @@ Click on any category below to explore detailed examples for that specific domai
 <table>
   <tr>
     <td width="50%" valign="top">
-      <img src="custom-frontend/raw-stream/media/message_sending.gif" alt="Custom Frontend Demo">
+      <img src="custom-frontend/open-vocabulary-object-detection/media/dynamic_yolo_world.gif" alt="Custom Frontend Demo">
     </td>
     <td width="50%" valign="middle" align="center">
       Examples showing how to implement a custom Front-End application using React and <a href="https://www.npmjs.com/package/@luxonis/depthai-viewer-common?activeTab=readme">@luxonis/depthai-viewer-common</a> package to connect to DepthAI application.
