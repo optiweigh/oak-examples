@@ -8,7 +8,7 @@ find_package(depthai REQUIRED)
 message(STATUS "Found depthai: ${depthai_DIR}")
 
 add_executable(uvc_example
-    src/main.cpp
+    src/uvc_example.cpp
 )
 
 target_compile_features(uvc_example PRIVATE cxx_std_17)
