@@ -7,5 +7,6 @@ This section contains DepthAIv3 sample applications implemented in C++. They dem
 | Name                            | RVC2 | RVC4 (peripheral) | RVC4 (standalone) | DepthAIv2 | Notes                                                                                      |
 | ------------------------------- | ---- | ----------------- | ----------------- | --------- | ------------------------------------------------------------------------------------------ |
 | [camera_stream](camera_stream/) | ✅   | ✅                | ✅                |           | Minimal C++ pipeline streaming camera frames through `dai::RemoteConnection` to Visualizer |
+| [UVC example](uvc/)             | ❌   | ❌                | ✅                |           | C++ example for streaming video via UVC (USB Video Class) (device behaves as UVC camera)   |
 
 ✅: available; ❌: not available; 🚧: work in progress
