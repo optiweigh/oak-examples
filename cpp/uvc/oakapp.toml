@@ -21,8 +21,10 @@ prepare_build_container = [
 build_steps = [
     "cmake -S /app -B /app/build -DDEPTHAI_ENABLE_CURL=OFF -DDEPTHAI_ENABLE_REMOTE_CONNECTION=OFF -DDEPTHAI_ENABLE_EVENTS_MANAGER=OFF -DDEPTHAI_ENABLE_PROTOBUF=OFF -DDEPTHAI_OPENCV_SUPPORT=OFF -DDEPTHAI_BUILD_EXAMPLES=ON",
     "cmake --build /app/build --parallel 4",
+    "cp /app/build/uvc_example /app/uvc_example",
     "cp /app/build/uvc-gadget/lib/libuvcgadget.so /usr/lib",
     "cp /app/build/uvc-gadget/lib/libuvcgadget.so.0.4.0 /usr/lib",
+    "bash -c 'chmod +x /app/uvc-start.sh'",
 ]
 
 allowed_devices = [{ allow = true, access = "rwm" }]

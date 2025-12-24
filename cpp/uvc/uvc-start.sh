@@ -236,7 +236,7 @@ case "$1" in
         uvc_bind
 
         log "=== Starting UVC APP"
-        /app/build/uvc_example &
+        /app/uvc_example &
         child_pid=$!
         wait "$child_pid"
         status=$?
