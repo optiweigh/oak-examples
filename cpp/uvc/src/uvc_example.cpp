@@ -15,17 +15,17 @@
 #include "uvc_example.hpp"
 
 extern "C" {
-#include "uvc-gadget/lib/video-buffers.h"
-#include "uvcgadget/configfs.h"
-#include "uvcgadget/events.h"
-#include "uvcgadget/stream.h"
-#include "uvc-gadget/lib/uvc.h"
-#include "uvcgadget/libcamera-source.h"
-#include "uvcgadget/v4l2-source.h"
-#include "uvcgadget/test-source.h"
-#include "uvcgadget/jpg-source.h"
-#include "uvcgadget/slideshow-source.h"
-#include "uvcgadget/depthai-source.h"
+#include "video-buffers.h"
+#include "configfs.h"
+#include "events.h"
+#include "stream.h"
+#include "uvc.h"
+#include "libcamera-source.h"
+#include "v4l2-source.h"
+#include "test-source.h"
+#include "jpg-source.h"
+#include "slideshow-source.h"
+#include "depthai-source.h"
 }
 
 // Global flag for graceful shutdown
