@@ -1,12 +1,15 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+/*
+ * Copyright (c) 2026 Luxonis, Inc.
+ *
+ * Contact: Jure Rebernik <jure.rebernik@luxonis.com>
+ */
+
 #include <atomic>
 #include <csignal>
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <memory>
-// #include <opencv2/opencv.hpp>
-#include <thread>
-#include <vector>
 
 #include "depthai/depthai.hpp"
 #include "depthai/pipeline/MessageQueue.hpp"

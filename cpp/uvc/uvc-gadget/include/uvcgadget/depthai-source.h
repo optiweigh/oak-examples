@@ -1,3 +1,10 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+/*
+ * Copyright (c) 2026 Luxonis, Inc.
+ *
+ * Contact: Jure Rebernik <jure.rebernik@luxonis.com>
+ */
+
 #ifndef UVCGADGET_DEPTHAI_SOURCE_H
 #define UVCGADGET_DEPTHAI_SOURCE_H
 
