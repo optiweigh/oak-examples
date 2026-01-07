@@ -1,3 +1,8 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Luxonis, Inc.
+# 
+# Contact: <support@luxonis.com>
+
 cmake_minimum_required(VERSION 3.20)
 
 project(uvc_example LANGUAGES C CXX)

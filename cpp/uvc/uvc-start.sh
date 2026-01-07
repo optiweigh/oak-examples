@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Luxonis, Inc.
+# 
+# Contact: <support@luxonis.com>
+
 # Log function for unified messages
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') [UVC] $1"
