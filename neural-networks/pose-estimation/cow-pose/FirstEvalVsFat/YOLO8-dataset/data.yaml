@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['cattle']
+
+roboflow:
+  workspace: optiweigh
+  project: cattle-backline-segmentation
+  version: 1
+  license: Private
+  url: https://app.roboflow.com/optiweigh/cattle-backline-segmentation/1

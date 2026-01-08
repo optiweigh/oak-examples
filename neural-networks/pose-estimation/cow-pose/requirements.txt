@@ -1,0 +1,4 @@
+depthai
+depthai-nodes
+opencv-python
+numpy
