@@ -57,6 +57,12 @@ with dai.Pipeline(device) as pipeline:
     else:
         cam = pipeline.create(dai.node.Camera).build()
     input_node = replay if args.media_path else cam
+    
+    # Get high-resolution output for snapshots
+    if args.media_path:
+        hires_output = replay.out
+    else:
+        hires_output = cam.requestOutput((1920, 1080), type=frame_type)  # 1080p resolution
 
     detection_nn: ParsingNeuralNetwork = pipeline.create(ParsingNeuralNetwork).build(
         input_node, det_nn_archive, fps=args.fps_limit
@@ -108,6 +114,9 @@ with dai.Pipeline(device) as pipeline:
         input_detections=gather_data.out,
         connection_pairs=connection_pairs,
         padding=PADDING,
+        video_frame=hires_output,  # Use high-resolution output for snapshots
+        snapshot_cooldown=2.0,  # Minimum 2 seconds between snapshots
+        blur_threshold=100.0,  # Sharpness threshold
     )
 
     # visualization

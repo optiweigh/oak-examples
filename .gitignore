@@ -20,8 +20,6 @@ downloads/
 eggs/
 .eggs/
 lib/
-!cpp/
-!cpp/**
 lib64/
 parts/
 sdist/
@@ -176,3 +174,7 @@ cython_debug/
 node_modules/
 dist/
 styled-system/
+
+
+# Custom
+snapshots/
